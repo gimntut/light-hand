@@ -1,0 +1,36 @@
+﻿	<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+		<PropertyGroup>
+			<ProjectGuid>{1497D3F6-6DB2-405F-AA5B-39EFD5918D2E}</ProjectGuid>
+		</PropertyGroup>
+		<ItemGroup>
+			<Projects Include="TimTab.dproj">
+				<Dependencies/>
+			</Projects>
+		</ItemGroup>
+		<ProjectExtensions>
+			<Borland.Personality>Default.Personality.12</Borland.Personality>
+			<Borland.ProjectType/>
+			<BorlandProject>
+				<Default.Personality/>
+			</BorlandProject>
+		</ProjectExtensions>
+		<Target Name="TimTab">
+			<MSBuild Projects="TimTab.dproj"/>
+		</Target>
+		<Target Name="TimTab:Clean">
+			<MSBuild Targets="Clean" Projects="TimTab.dproj"/>
+		</Target>
+		<Target Name="TimTab:Make">
+			<MSBuild Targets="Make" Projects="TimTab.dproj"/>
+		</Target>
+		<Target Name="Build">
+			<CallTarget Targets="TimTab"/>
+		</Target>
+		<Target Name="Clean">
+			<CallTarget Targets="TimTab:Clean"/>
+		</Target>
+		<Target Name="Make">
+			<CallTarget Targets="TimTab:Make"/>
+		</Target>
+		<Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+	</Project>
