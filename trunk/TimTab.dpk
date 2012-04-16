@@ -1,0 +1,52 @@
+package TimTab;
+
+{$R *.res}
+{$ALIGN 8}
+{ ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{ DEBUGINFO OFF}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{ LOCALSYMBOLS OFF}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION ON}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO OFF}
+{$SAFEDIVIDE OFF}
+{ STACKFRAMES OFF}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST ON}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $51000000}
+{$DESCRIPTION 'Компоненты для школьного расписания'}
+{$DESIGNONLY}
+{$IMPLICITBUILD ON}
+
+requires
+  rtl,
+  vcl,
+  designide,
+  PublDpk,
+  Nail_;
+
+contains
+  SbjColl in 'SbjColl.pas',
+  SbjKernel in 'SbjKernel.pas',
+  SbjTeachDlg in 'SbjTeachDlg.pas',
+  SbjSubjDlg in 'SbjSubjDlg.pas',
+  SbjKabDlg in 'SbjKabDlg.pas' {KabinetDlg},
+  RegTT in 'RegTT.pas',
+  SbjResource in 'SbjResource.pas',
+  SbjPlug in 'SbjPlug.pas',
+  SbjManager in 'SbjManager.pas' {ManageDlg},
+  SbjGrd in 'SbjGrd.pas',
+  SbjSrc in 'SbjSrc.pas',
+  SbjLst in 'SbjLst.pas',
+  SbjCmd in 'SbjCmd.pas',
+  MyDialog in 'MyDialog.pas';
+
+end.
