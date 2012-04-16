@@ -137,7 +137,7 @@ end;
 procedure TTableForm.FormDestroy(Sender: TObject);
 begin
   ss1.Save;
- //ss1.SaveTxt; 
+  ss1.SaveTxt;
 end;
 
 end.

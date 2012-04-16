@@ -14,7 +14,7 @@ unit sbjKernel;
 interface
 
 uses Windows, SysUtils, Classes, Grids, ComCtrls, SbjColl, Dialogs,
-  SbjResource, publ;
+  SbjResource, publ, superobject;
 
 type
  ////////////////////// forward //////////////////////
@@ -59,6 +59,7 @@ type
     constructor Create;
     destructor Destroy; override;
     function Add(Long, Short: string; PIN: integer): integer; reintroduce; overload;
+    function AsJSonObject:ISuperObject;
     procedure LoadFromStream(Stream: TStream); override;
     property LongName[x: integer]: string read GetLongName write SetLongName;
     property SanPIN[x: integer]: Integer read GetSanPIN write SetSanPIN;
@@ -232,6 +233,7 @@ type
     function AddNewItem: TKlass;
     function IndexOf(Name: string): integer;
     function Lines(short: boolean): TStrings;
+    function AsJSonObject:ISuperObject;
     procedure Assign(Source: TPersistent); override;
     property FormatString: string read FFormatString write SetFormatString;
     property FullKlassName[x: integer]: string read GetFullKlassName;
@@ -251,6 +253,7 @@ type
     function AddNewItem: TKabinet;
     function IndexOf(Num: integer): integer;
     function Lines(Short: boolean): TStrings;
+    function AsJSonObject:ISuperObject;
     procedure Assign(Source: TPersistent); override;
     procedure Clear(AutoFree: boolean);
     property Item[x: integer]: TKabinet read GetItem write SetItem; default;
@@ -442,8 +445,8 @@ type
     procedure SaveSubjects(sr: TStream);
     procedure SaveTeachers(sr: TStream);
     procedure SaveTimeTable(sr: TStream);
-    procedure SaveTxTKabinets(var tx: TextFile);
-    procedure SaveTxTKlasses(var tx: TextFile);
+    procedure SaveTxtKabinets(var tx: TextFile);
+    procedure SaveTxtKlasses(var tx: TextFile);
     procedure SaveTxtSubjectNames(var tx: TextFile);
     procedure SaveTxtSubjects(var tx: TextFile);
     procedure SaveTxtTeachers(var tx: TextFile);
@@ -455,6 +458,7 @@ type
     function Add(Subject: TSubject): integer; overload;
     function Add: TSubject; overload;
     function IsCross(subj1, subj2: TSubject): boolean;
+    function AsJSonObject:ISuperObject;
     procedure Clear;
     procedure Delete(Subject: TSubject); overload;
     procedure Delete(x: Integer); overload;
@@ -483,7 +487,7 @@ function FromName(Long, Short: string; Pin: integer): string;
 
 implementation
 
-uses DateUtils, Math, StrUtils, superobject;
+uses DateUtils, Math, StrUtils;
 //////////////////////////////////////////////////
                   { TSubjNames }
 //////////////////////////////////////////////////
@@ -570,6 +574,26 @@ begin
 end;
 
 {public}
+function TSubjNames.AsJSonObject: ISuperObject;
+var
+  I:Integer;
+  supArray: TSuperArray;
+  supKabinet: ISuperObject;
+  SubjName: ISuperObject;
+begin
+  Result := so;
+  Result.I['Count']:=Count;
+  Result.O['Items']:=so('[]');
+  supArray:=Result.A['Items'];
+  for I := 0 to Count - 1 do begin
+    SubjName:=so;
+    SubjName.S['LongName']:=LongName[I];
+    SubjName.S['ShortName']:=ShortName[I];
+    SubjName.I['SanPIN']:=SanPIN[I];
+    supArray.Add(SubjName);
+  end;
+end;
+
 constructor TSubjNames.Create;
 begin
   Longs := TStringList.Create;
@@ -1066,6 +1090,26 @@ begin
   result := sts;
 end;
 
+function TKlasses.AsJSonObject: ISuperObject;
+var
+  I: integer;
+  supArray: TSuperArray;
+  supKlass: ISuperObject;
+begin
+  Result := so;
+  Result.S['FormatString']:=FormatString;
+  Result.I['Count']:=Count;
+  Result.O['Items']:=so('[]');
+  supArray:=Result.A['Items'];
+  for I := 0 to Count - 1 do begin
+    supKlass:=so;
+    supKlass.S['Name']:=Item[I].Name;
+    supKlass.S['Lock']:=CrossAsString(Item[I].Lock);
+    supKlass.B['Checked']:=Item[I].Checked;
+    supArray.Add(supKlass);
+  end;
+end;
+
 procedure TKlasses.Assign(Source: TPersistent);
 var
   Klasses: TKlasses;
@@ -1147,6 +1191,27 @@ begin
     else
       sts.AddObject(Item[i].FullName, fItem[i]);
   result := sts;
+end;
+
+function TKabinets.AsJSonObject: ISuperObject;
+var
+  I: integer;
+  supArray: TSuperArray;
+  supKabinet: ISuperObject;
+begin
+  Result := so;
+  Result.I['Count']:=Count;
+  Result.O['Items']:=so('[]');
+  supArray:=Result.A['Items'];
+  for I := 0 to Count - 1 do begin
+    supKabinet:=so;
+    supKabinet.S['Name']:=Item[I].Name;
+    supKabinet.I['Num']:=Item[I].Num;
+    supKabinet.S['Lock']:=CrossAsString(Item[I].Lock);
+    supKabinet.B['Checked']:=Item[I].Checked;
+    supKabinet.B['ShowNum']:=Item[I].ShowNum;
+    supArray.Add(supKabinet);
+  end;
 end;
 
 procedure TKabinets.Assign(Source: TPersistent);
@@ -2343,126 +2408,53 @@ begin
 
 end;
 
-procedure TSubjects.SaveTxTKabinets(var tx: TextFile);
-var
-  i: integer;
+procedure TSubjects.SaveTxtKabinets(var tx: TextFile);
 begin
-  Writeln(tx, '*** Информация о кабинетах ***');
-  with Kabinets do begin
-    Writeln(tx, Count - 1, #9#9#2' Количество кабинетов');
-    for i := 1 to Count - 1 do
-      with Item[i] do begin
-        Writeln(tx, Name, #9#9#2' Имя кабинета');
-        Writeln(tx, Num, #9#9#2' Номер кабинета');
-        Writeln(tx, CrossAsString(Lock), #9#9#2' Заблокированые уроки кабинета');
-        Writeln(tx, DaNet(Checked), #9#9#2' Показывать кабинет в сетке');
-        Writeln(tx, DaNet(ShowNum), #9#9#2' Показывать номер кабинета');
-        Writeln(tx); // Пустая разделительная строка
-      end;
-  end;
-  Writeln(tx, '- ~ - ~ - ~ - ~ -'); // Конец Блока
+  Writeln(tx, Kabinets.AsJSonObject.AsJSon(true));
   Writeln(tx); // Пустая разделительная строка
 end;
 
-procedure TSubjects.SaveTxTKlasses(var tx: TextFile);
-var
-  i: integer;
-  sup: ISuperObject;
-  sup2: ISuperObject;
-  supArray: TSuperArray;
+procedure TSubjects.SaveTxtKlasses(var tx: TextFile);
 begin
-  sup := so;
-  sup.S['Description']:='Информация о классах';
-  sup.O['Items']:=so('[]');
-  supArray := sup.A['Items'];
-  with Klasses do begin
-    sup2:=so;
-    sup2.S['Description']:='Строка форматирования';
-    sup2.S['Name']:='FormatString';
-    sup2.S['Value']:=FormatString;
-    supArray.Add(sup2);
-    Writeln(tx, Count, #9#9#2' Количество классов');
-    for i := 0 to Count - 1 do begin
-      Writeln(tx, Item[i].Name, #9#9#2' Название класса');
-      Writeln(tx, CrossAsString(Item[i].Lock), #9#9#2' Заблокированные уроки класса');
-      Writeln(tx, DaNet(Item[i].Checked), #9#9#2' Показывать класс в сетке');
-      Writeln(tx); // Пустая разделительная строка
-    end;
-  end;
-  Writeln(tx, '- ~ - ~ - ~ - ~ -'); // Конец Блока
+  Writeln(tx, Klasses.AsJSonObject.AsJSon(true));
   Writeln(tx); // Пустая разделительная строка
 end;
 
 procedure TSubjects.SaveTxtSubjectNames(var tx: TextFile);
 begin
-  Writeln(tx, '*** Названия предметов ***');
-  Writeln(tx, FSubjectNames.Count, #9#9#2' Число имён кабинетов');
-  Write(tx, FSubjectNames.Text);
-  Writeln(tx, '- ~ - ~ - ~ - ~ -'); // Конец Блока
+  Write(tx, FSubjectNames.AsJSonObject.AsJSon(true));
   Writeln(tx); // Пустая разделительная строка
 end;
 
 procedure TSubjects.SaveTxtSubjects(var tx: TextFile);
-var
-  i, j, n: integer;
 begin
-  Writeln(tx, '*** Информация о предметах ***');
-  Writeln(tx, ord(FViewMode), #9#9#2' Режим просмотра списка 0,1,2,3 = Предметы, заголовки, дни недели, номера уроков');
-  Writeln(tx, ord(FColumnMode), #9#9#2' Режим показа сетки 0,1,2 = Классы, Учителя, Кабинеты');
-  Writeln(tx, ord(FTableContent), #9#9#2' Режим показа ячеек сетки 0,1,2 = Предметы, Учителя, Кабинеты');
-  Writeln(tx, WeekDaysAsString(FWeekDays), #9#9#2' Дни недели показанные в расписании');
-  Writeln(tx, CrossAsString(FLessons), #9#9#2' Уроки показанные в расписании');
-  Writeln(tx, DaNet(FFullView), #9#9#2' Включена ли фильтрация информации?');
-  Writeln(tx, Count, #9#9#2' Количество предметов');
-  for i := 0 to MaxInd do
-    with Item[i] do begin
-      if Klass = nil then
-        n := -1
-      else
-        n := Klass.ItemIndex;
-      Writeln(tx, n, #9#9#2' Порядковый номер предмета');
-      n := TeacherCount;
-      Writeln(tx, n, #9#9#2' Количество учителей');
-      for j := 0 to n - 1 do begin
-        if Teachers[j] = nil then
-          n := -1
-        else
-          n := Teachers[j].ItemIndex;
-        Writeln(tx, n, #9#9#2' Порядковый номер учителя');
-        if Kabinets[j] = nil then
-          n := -1
-        else
-          n := Kabinets[j].ItemIndex;
-        Writeln(tx, n, #9#9#2' Порядковый номер кабинета');
-      end;
-      Writeln(tx, FComplexion, #9#9#2' 0,1,2 = Обычный, Спаренный, Половинный');
-      Writeln(tx, FLessonAtWeek, #9#9#2' Уроков в неделю');
-      Writeln(tx, FNameIndex, #9#9#2' Порядковый номер названия предмета');
-      Writeln(tx, DaNet(FMultiLine), #9#9#2' ');
-      Writeln(tx, 0, #9#9#2' Порядковый номер прородителя');
-      Writeln(tx); // Пустая разделительная строка
-    end;
-  Writeln(tx, '- ~ - ~ - ~ - ~ -'); // Конец Блока
+  Writeln(tx, AsJSonObject.AsJSon(true));
   Writeln(tx); // Пустая разделительная строка
 end;
 
 procedure TSubjects.SaveTxtTeachers(var tx: TextFile);
 var
-  i: integer;
+  I: integer;
+  sup: ISuperObject;
+  supTeachers: TSuperArray;
+  supTeacher: ISuperObject;
 begin
   with Teachers do begin
-    Writeln(tx, '*** Информация о учителях ***');
-    Writeln(tx, Count, #9#9#2' Количесво учителей');
-    for i := 0 to Count - 1 do
-      with Item[i] do begin
-        Writeln(tx, Name, #9#9#2' ФИО учителя');
-        Writeln(tx, KabNum, #9#9#2' Номер основного кабинета');
-        Writeln(tx, CrossAsString(Lock), #9#9#2' Уроки заблокированные для учителя');
-        Writeln(tx, DaNet(Checked), #9#9#2' Учитель виден в сетке');
-        Writeln(tx); // Пустая разделительная строка
+    sup := so;
+    sup.I['Count']:=Count;
+    sup.O['Items']:=so('[]');
+    supTeachers:=sup.A['Items'];
+    for I := 0 to Count - 1 do
+      with Item[I] do begin
+        supTeacher := so;
+        supTeacher.S['Name']:=Name;
+        supTeacher.I['KabNum']:=KabNum;
+        supTeacher.S['Lock']:=CrossAsString(Lock);
+        supTeacher.B['Checked']:=Checked;
+        supTeachers.Add(supTeacher);
       end;
   end;
-  Writeln(tx, '- ~ - ~ - ~ - ~ -'); // Конец Блока
+  Writeln(tx, sup.AsJSon(true)); // Конец Блока
   Writeln(tx); // Пустая разделительная строка
 end;
 
@@ -2538,6 +2530,63 @@ begin
  // Текст процедуры изменению не подлежит
   result := TSubject.Create(fSubjectNames);
   Add(result);
+end;
+
+function TSubjects.AsJSonObject: ISuperObject;
+var
+  I, J, N: integer;
+  supSubjects: TSuperArray;
+  supTeachKabs: TSuperArray;
+  supSubject: ISuperObject;
+  supTeachKab: ISuperObject;
+begin
+  Result := so;
+  Result.S['ViewModeComment']:='0,1,2,3 = Предметы, заголовки, дни недели, номера уроков';
+  Result.S['ColumnModeComment']:='0,1,2 = Классы, Учителя, Кабинеты';
+  Result.S['TableContentComment']:='0,1,2 = Предметы, Учителя, Кабинеты';
+  Result.S['ComplexionComment']:='0,1,2 = Обычный, Спаренный, Половинный';
+  Result.I['ViewMode']:=ord(FViewMode);
+  Result.I['ColumnMode']:=ord(FColumnMode);
+  Result.I['TableContent']:=ord(FTableContent);
+  Result.S['WeekDays']:=WeekDaysAsString(FWeekDays);
+  Result.S['Lessons']:=CrossAsString(FLessons);
+  Result.B['FullView']:=FFullView;
+  Result.I['Count']:=Count;
+  Result.O['Items']:=so('[]');
+  supSubjects := Result.A['Items'];
+  for I := 0 to MaxInd do
+    with Item[I] do begin
+      supSubject := so;
+      if Klass = nil then
+        N := -1
+      else
+        N := Klass.ItemIndex;
+      supSubject.I['KlassIndex']:=N;
+      supSubject.I['TeacherCount']:=TeacherCount;
+      supSubject.O['Items']:=so('[]');
+      supTeachKabs:=supSubject.A['Items'];
+      for J := 0 to TeacherCount - 1 do begin
+        supTeachKab := so;
+        if Teachers[J] = nil then
+          N := -1
+        else
+          N := Teachers[J].ItemIndex;
+        supTeachKab.I['TeacherIndex']:=N;
+
+        if Kabinets[J] = nil then
+          N := -1
+        else
+          N := Kabinets[J].ItemIndex;
+        supTeachKab.I['KabinetIndex']:=N;
+        supTeachKabs.Add(supTeachKab);
+      end;
+      supSubject.I['Complexion']:=FComplexion;
+      supSubject.I['LessonAtWeek']:=FLessonAtWeek;
+      supSubject.I['NameIndex']:=FNameIndex;
+      supSubject.B['MultiLine']:=FMultiLine;
+      supSubject.I['OriginalSubjectIndex']:=0;
+      supSubjects.Add(supSubject);
+    end;
 end;
 
 function TSubjects.IsCross(subj1, subj2: TSubject): boolean;
@@ -2693,8 +2742,8 @@ begin
  // TODO 3: SaveToFile (необходимо сохранить Current-данные)
   AssignFile(tx, fn);
   Rewrite(tx);
-  SaveTxTKlasses(tx);
-  SaveTxTKabinets(tx);
+  SaveTxtKlasses(tx);
+  SaveTxtKabinets(tx);
   SaveTxtTeachers(tx);
   SaveTxtSubjectNames(tx);
   SaveTxtSubjects(tx);
