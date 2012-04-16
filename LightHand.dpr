@@ -1,7 +1,7 @@
-program Raspi01;
+program LightHand;
 
 {%File 'History.txt'}
-{%ToDo 'Raspi01.todo'}
+{%ToDo 'LightHand.todo'}
 
 uses
   Forms,

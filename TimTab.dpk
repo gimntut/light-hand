@@ -47,6 +47,7 @@ contains
   SbjSrc in 'SbjSrc.pas',
   SbjLst in 'SbjLst.pas',
   SbjCmd in 'SbjCmd.pas',
-  MyDialog in 'MyDialog.pas';
+  MyDialog in 'MyDialog.pas',
+  superobject in 'superobject.pas';
 
 end.
