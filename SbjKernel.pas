@@ -271,6 +271,7 @@ type
     function AddNewItem: TTeacher;
     function IndexOf(Name: string): integer;
     function Lines(Short: boolean): TStrings;
+    function AsJSonObject: ISuperObject;
     procedure Assign(Source: TPersistent); override;
     property Item[x: integer]: TTeacher read GetItem write SetItem; default;
   end;
@@ -1303,6 +1304,27 @@ begin
     else
       sts.AddObject(Item[i].Name, fItem[i]);
   result := sts;
+end;
+
+function TTeachers.AsJSonObject: ISuperObject;
+var
+  I: integer;
+  supTeachers: TSuperArray;
+  supTeacher: ISuperObject;
+begin
+  Result := so;
+  Result.I['Count']:=Count;
+  Result.O['Items']:=so('[]');
+  supTeachers:=Result.A['Items'];
+  for I := 0 to Count - 1 do
+    with Item[I] do begin
+      supTeacher := so;
+      supTeacher.S['Name']:=Name;
+      supTeacher.I['KabNum']:=KabNum;
+      supTeacher.S['Lock']:=CrossAsString(Lock);
+      supTeacher.B['Checked']:=Checked;
+      supTeachers.Add(supTeacher);
+    end;
 end;
 
 procedure TTeachers.Assign(Source: TPersistent);
@@ -2433,28 +2455,8 @@ begin
 end;
 
 procedure TSubjects.SaveTxtTeachers(var tx: TextFile);
-var
-  I: integer;
-  sup: ISuperObject;
-  supTeachers: TSuperArray;
-  supTeacher: ISuperObject;
 begin
-  with Teachers do begin
-    sup := so;
-    sup.I['Count']:=Count;
-    sup.O['Items']:=so('[]');
-    supTeachers:=sup.A['Items'];
-    for I := 0 to Count - 1 do
-      with Item[I] do begin
-        supTeacher := so;
-        supTeacher.S['Name']:=Name;
-        supTeacher.I['KabNum']:=KabNum;
-        supTeacher.S['Lock']:=CrossAsString(Lock);
-        supTeacher.B['Checked']:=Checked;
-        supTeachers.Add(supTeacher);
-      end;
-  end;
-  Writeln(tx, sup.AsJSon(true)); // Конец Блока
+  Writeln(tx, Teachers.AsJSonObject.AsJSon(true)); // Конец Блока
   Writeln(tx); // Пустая разделительная строка
 end;
 
@@ -2736,19 +2738,18 @@ end;
 
 procedure TSubjects.SaveToTextFile(fn: string);
 var
-  tx: TextFile;
+  sup: ISuperObject;
 begin
  // Запись абсолютно всех данных в файл
  // TODO 3: SaveToFile (необходимо сохранить Current-данные)
-  AssignFile(tx, fn);
-  Rewrite(tx);
-  SaveTxtKlasses(tx);
-  SaveTxtKabinets(tx);
-  SaveTxtTeachers(tx);
-  SaveTxtSubjectNames(tx);
-  SaveTxtSubjects(tx);
-  SaveTxtTimeTable(tx);
-  CloseFile(tx);
+  sup:=so;
+  sup.O['Klasses']:=Klasses.AsJSonObject;
+  sup.O['Kabinets']:=Kabinets.AsJSonObject;
+  sup.O['Teachers']:=Teachers.AsJSonObject;
+  sup.O['SubjectNames']:=SubjectNames.AsJSonObject;
+  sup.O['Subjects']:=AsJSonObject;
+  // SaveTxtTimeTable(tx);
+  sup.SaveTo(fn,true);
 end;
 ////////////////////// Вспомогательные функции //////////////////////
 function ToName(s: string): TName;
