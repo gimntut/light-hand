@@ -8,10 +8,12 @@
 			<Option Name="GUID">{E85E7D41-24DE-443D-A57B-463B82BEF672}</Option>
 		</Option>
 	</PersonalityInfo>
-	<Default.Personality>  <Projects>
+	<Default.Personality>  
+    
+    <Projects>
       <Projects Name="Nail_.bpl">MyLib\Nail_.bdsproj</Projects>
       <Projects Name="TimTab.bpl">TimTab.bdsproj</Projects>
-      <Projects Name="Raspi01.exe">Raspi01.bdsproj</Projects>
+      <Projects Name="Raspi01.exe">LightHand.bdsproj</Projects>
       <Projects Name="Targets">Nail_.bpl TimTab.bpl Raspi01.exe</Projects>
     </Projects>
     <Dependencies>
