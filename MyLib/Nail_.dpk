@@ -1,0 +1,60 @@
+package Nail_;
+
+{$R *.res}
+{$ALIGN 8}
+{ ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{ DEBUGINFO ON}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{ LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION ON}
+{$OVERFLOWCHECKS ON}
+{$RANGECHECKS ON}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{ STACKFRAMES OFF}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST ON}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $51000000}
+{$DESCRIPTION 'Набор компонент от эНДи'}
+{$DESIGNONLY}
+{$IMPLICITBUILD ON}
+
+requires
+  rtl,
+  vcl,
+  designide,
+  vclactnband,
+  vclx,
+  dclstd,
+  VclSmp,
+  dbrtl,
+  bdertl,
+  inet,
+  xmlrtl,
+  PublDpk,
+  vcljpg;
+
+contains
+  RegMyLib in 'RegMyLib.pas',
+  Artifact in 'Artifact.pas',
+  MyLists in 'MyLists.pas',
+  num in 'num.pas',
+  PanelContainer in 'PanelContainer.pas',
+  uStorage in 'uStorage.pas' {StorageForm},
+  uPagePanel in 'uPagePanel.pas',
+  CoolBtn in 'CoolBtn.pas',
+  gnProgress in 'gnProgress.pas',
+  gnNTFS in 'gnNTFS.pas',
+  MyStreams in 'MyStreams.pas',
+  gsCatcher in 'gsCatcher.pas',
+  WinRar in 'WinRar.pas',
+  FileStrings in 'FileStrings.pas';
+
+end.

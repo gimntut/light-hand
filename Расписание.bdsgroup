@@ -12,8 +12,7 @@
       <Projects Name="Nail_.bpl">MyLib\Nail_.bdsproj</Projects>
       <Projects Name="TimTab.bpl">TimTab.bdsproj</Projects>
       <Projects Name="Raspi01.exe">Raspi01.bdsproj</Projects>
-      <Projects Name="p1.exe">..\..\..\Borland Studio Projects\musor\1\p1.bdsproj</Projects>
-      <Projects Name="Targets">Nail_.bpl TimTab.bpl Raspi01.exe p1.exe</Projects>
+      <Projects Name="Targets">Nail_.bpl TimTab.bpl Raspi01.exe</Projects>
     </Projects>
     <Dependencies>
       <Dependency GUID="{4738FADE-76CA-4A5E-8808-25F81DA1EAC5}">
