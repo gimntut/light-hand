@@ -49,9 +49,11 @@ type
     function GetMaxInd: integer;
     function GetSanPIN(Index: integer): Integer;
     function GetShortName(Index: integer): string;
+    function GetAsJSonObject:ISuperObject;
     procedure SetLongName(Index: integer; const Value: string);
     procedure SetSanPIN(Index: integer; const Value: Integer);
     procedure SetShortName(Index: integer; const Value: string);
+    procedure SetAsJSonObject(const Value: ISuperObject);
   protected
     procedure Put(Index: Integer; const S: string); override;
     property MaxInd: integer read GetMaxInd;
@@ -59,8 +61,8 @@ type
     constructor Create;
     destructor Destroy; override;
     function Add(Long, Short: string; PIN: integer): integer; reintroduce; overload;
-    function AsJSonObject:ISuperObject;
     procedure LoadFromStream(Stream: TStream); override;
+    property AsJSonObject:ISuperObject read GetAsJSonObject write SetAsJSonObject;
     property LongName[x: integer]: string read GetLongName write SetLongName;
     property SanPIN[x: integer]: Integer read GetSanPIN write SetSanPIN;
     property ShortName[x: integer]: string read GetShortName write SetShortName;
@@ -225,16 +227,18 @@ type
     sts: TStringList;
     function GetFullKlassName(x: integer): string;
     function GetItem(x: integer): TKlass;
+    function GetAsJSonObject:ISuperObject;
     procedure SetFormatString(const Value: string);
     procedure SetItem(x: integer; const Value: TKlass);
+    procedure SetAsJSonObject(const Value: ISuperObject);
   public
     constructor Create(AutoIndex: boolean);
     destructor Destroy; override;
     function AddNewItem: TKlass;
     function IndexOf(Name: string): integer;
     function Lines(short: boolean): TStrings;
-    function AsJSonObject:ISuperObject;
     procedure Assign(Source: TPersistent); override;
+    property AsJSonObject:ISuperObject read GetAsJSonObject write SetAsJSonObject;
     property FormatString: string read FFormatString write SetFormatString;
     property FullKlassName[x: integer]: string read GetFullKlassName;
     property Item[x: integer]: TKlass read GetItem write SetItem; default;
@@ -246,16 +250,18 @@ type
     AnyKabinet: TKabinet;
     sts: TStringList;
     function GetItem(x: integer): TKabinet;
+    function GetAsJSonObject:ISuperObject;
     procedure SetItem(x: integer; const Value: TKabinet);
+    procedure SetAsJSonObject(const Value: ISuperObject);
   public
     constructor Create(AutoIndex: boolean);
     destructor Destroy; override;
     function AddNewItem: TKabinet;
     function IndexOf(Num: integer): integer;
     function Lines(Short: boolean): TStrings;
-    function AsJSonObject:ISuperObject;
     procedure Assign(Source: TPersistent); override;
     procedure Clear(AutoFree: boolean);
+    property AsJSonObject:ISuperObject read GetAsJSonObject write SetAsJSonObject;
     property Item[x: integer]: TKabinet read GetItem write SetItem; default;
   end;
  ////////////////////// x //////////////////////
@@ -264,15 +270,17 @@ type
   private
     sts: TStringList;
     function GetItem(x: integer): TTeacher;
+    function GetAsJSonObject: ISuperObject;
     procedure SetItem(x: integer; const Value: TTeacher);
+    procedure SetAsJSonObject(const Value: ISuperObject);
   public
     constructor Create(AutoIndex: boolean);
     destructor Destroy; override;
     function AddNewItem: TTeacher;
     function IndexOf(Name: string): integer;
     function Lines(Short: boolean): TStrings;
-    function AsJSonObject: ISuperObject;
     procedure Assign(Source: TPersistent); override;
+    property AsJSonObject: ISuperObject read GetAsJSonObject write SetAsJSonObject;
     property Item[x: integer]: TTeacher read GetItem write SetItem; default;
   end;
  ////////////////////// x //////////////////////
@@ -446,20 +454,15 @@ type
     procedure SaveSubjects(sr: TStream);
     procedure SaveTeachers(sr: TStream);
     procedure SaveTimeTable(sr: TStream);
-    procedure SaveTxtKabinets(var tx: TextFile);
-    procedure SaveTxtKlasses(var tx: TextFile);
-    procedure SaveTxtSubjectNames(var tx: TextFile);
-    procedure SaveTxtSubjects(var tx: TextFile);
-    procedure SaveTxtTeachers(var tx: TextFile);
-    procedure SaveTxtTimeTable(var tx: TextFile);
     procedure SetSubject(x: integer; const Value: TSubject);
+    function GetAsJSonObject: ISuperObject;
+    procedure SetAsJSonObject(const Value: ISuperObject);
   public
     constructor Create;
     destructor Destroy; override;
     function Add(Subject: TSubject): integer; overload;
     function Add: TSubject; overload;
     function IsCross(subj1, subj2: TSubject): boolean;
-    function AsJSonObject:ISuperObject;
     procedure Clear;
     procedure Delete(Subject: TSubject); overload;
     procedure Delete(x: Integer); overload;
@@ -469,6 +472,7 @@ type
     procedure Save(srBig: TStream; Key: string; srSmall: TStream);
     procedure SaveToFile(fn: string);
     procedure SaveToTextFile(fn: string);
+    property AsJSonObject:ISuperObject read GetAsJSonObject write SetAsJSonObject;
     property ColumnMode: TColumnMode read FColumnMode write FColumnMode;
     property FullView: boolean read FFullView write FFullView;
     property Item[x: integer]: TSubject read GetSubject write SetSubject; default;
@@ -520,6 +524,20 @@ begin
   if (Index < 0) or (Index > MaxInd) then
     Exit;
   result := ToName(Strings[Index]).Short;
+end;
+
+procedure TSubjNames.SetAsJSonObject(const Value: ISuperObject);
+var
+  I:Integer;
+  supNames: TSuperArray;
+  supSubjName: ISuperObject;
+begin
+  Clear;
+  supNames:=Value.A['Items'];
+  for I := 0 to supNames.Length - 1 do begin
+    supSubjName:=supNames[I];
+    Add(supSubjName.S['LongName'],supSubjName.S['ShortName'],supSubjName.I['SanPIN']);
+  end;
 end;
 
 procedure TSubjNames.SetLongName(Index: integer; const Value: string);
@@ -575,23 +593,22 @@ begin
 end;
 
 {public}
-function TSubjNames.AsJSonObject: ISuperObject;
+function TSubjNames.GetAsJSonObject: ISuperObject;
 var
   I:Integer;
-  supArray: TSuperArray;
-  supKabinet: ISuperObject;
-  SubjName: ISuperObject;
+  supNames: TSuperArray;
+  supSubjName: ISuperObject;
 begin
   Result := so;
   Result.I['Count']:=Count;
   Result.O['Items']:=so('[]');
-  supArray:=Result.A['Items'];
+  supNames:=Result.A['Items'];
   for I := 0 to Count - 1 do begin
-    SubjName:=so;
-    SubjName.S['LongName']:=LongName[I];
-    SubjName.S['ShortName']:=ShortName[I];
-    SubjName.I['SanPIN']:=SanPIN[I];
-    supArray.Add(SubjName);
+    supSubjName:=so;
+    supSubjName.S['LongName']:=LongName[I];
+    supSubjName.S['ShortName']:=ShortName[I];
+    supSubjName.I['SanPIN']:=SanPIN[I];
+    supNames.Add(supSubjName);
   end;
 end;
 
@@ -1026,6 +1043,24 @@ begin
   result := TKlass(inherited GetItem(x));
 end;
 
+procedure TKlasses.SetAsJSonObject(const Value: ISuperObject);
+var
+  I: integer;
+  supKlasses: TSuperArray;
+  supKlass: ISuperObject;
+  Klass: TKlass;
+begin
+  Clear(true);
+  FormatString:=Value.S['FormatString'];
+  supKlasses:=Value.A['Items'];
+  for I := 0 to supKlasses.Length - 1 do begin
+    Klass:=AddNewItem;
+    Klass.Name:=supKlass.S['Name'];
+    Klass.Lock:=StringAsCross(supKlass.S['Lock']);
+    Klass.Checked:=supKlass.B['Checked'];
+  end;
+end;
+
 procedure TKlasses.SetFormatString(const Value: string);
 begin
  // Вид выдачи названия класса на экран
@@ -1091,23 +1126,23 @@ begin
   result := sts;
 end;
 
-function TKlasses.AsJSonObject: ISuperObject;
+function TKlasses.GetAsJSonObject: ISuperObject;
 var
   I: integer;
-  supArray: TSuperArray;
+  supKlasses: TSuperArray;
   supKlass: ISuperObject;
 begin
   Result := so;
   Result.S['FormatString']:=FormatString;
   Result.I['Count']:=Count;
   Result.O['Items']:=so('[]');
-  supArray:=Result.A['Items'];
+  supKlasses:=Result.A['Items'];
   for I := 0 to Count - 1 do begin
     supKlass:=so;
     supKlass.S['Name']:=Item[I].Name;
     supKlass.S['Lock']:=CrossAsString(Item[I].Lock);
     supKlass.B['Checked']:=Item[I].Checked;
-    supArray.Add(supKlass);
+    supKlasses.Add(supKlass);
   end;
 end;
 
@@ -1133,6 +1168,25 @@ end;
 function TKabinets.GetItem(x: integer): TKabinet;
 begin
   result := TKabinet(inherited GetItem(x));
+end;
+
+procedure TKabinets.SetAsJSonObject(const Value: ISuperObject);
+var
+  I: integer;
+  supKabinets: TSuperArray;
+  supKabinet: ISuperObject;
+  Kabinet: TKabinet;
+begin
+  Clear(True);
+  supKabinets:=Value.A['Items'];
+  for I := 0 to supKabinets.Length - 1 do begin
+    Kabinet:=AddNewItem;
+    Kabinet.Name:=supKabinet.S['Name'];
+    Kabinet.Num:=supKabinet.I['Num'];
+    Kabinet.Lock:=StringAsCross(supKabinet.S['Lock']);
+    Kabinet.Checked:=supKabinet.B['Checked'];
+    Kabinet.ShowNum:=supKabinet.B['ShowNum'];
+  end;
 end;
 
 procedure TKabinets.SetItem(x: integer; const Value: TKabinet);
@@ -1194,16 +1248,16 @@ begin
   result := sts;
 end;
 
-function TKabinets.AsJSonObject: ISuperObject;
+function TKabinets.GetAsJSonObject: ISuperObject;
 var
   I: integer;
-  supArray: TSuperArray;
+  supKabinets: TSuperArray;
   supKabinet: ISuperObject;
 begin
   Result := so;
   Result.I['Count']:=Count;
   Result.O['Items']:=so('[]');
-  supArray:=Result.A['Items'];
+  supKabinets:=Result.A['Items'];
   for I := 0 to Count - 1 do begin
     supKabinet:=so;
     supKabinet.S['Name']:=Item[I].Name;
@@ -1211,7 +1265,7 @@ begin
     supKabinet.S['Lock']:=CrossAsString(Item[I].Lock);
     supKabinet.B['Checked']:=Item[I].Checked;
     supKabinet.B['ShowNum']:=Item[I].ShowNum;
-    supArray.Add(supKabinet);
+    supKabinets.Add(supKabinet);
   end;
 end;
 
@@ -1253,6 +1307,24 @@ function TTeachers.GetItem(x: integer): TTeacher;
 begin
  // Преподаватель
   result := TTeacher(inherited Item[x]);
+end;
+
+procedure TTeachers.SetAsJSonObject(const Value: ISuperObject);
+var
+  I: integer;
+  supTeachers: TSuperArray;
+  supTeacher: ISuperObject;
+  Teacher: TTeacher;
+begin
+  Clear(True);
+  supTeachers:=Value.A['Items'];
+  for I := 0 to supTeachers.Length - 1 do begin
+    Teacher := AddNewItem;
+    Teacher.Name:=supTeacher.S['Name'];
+    Teacher.KabNum:=supTeacher.I['KabNum'];
+    Teacher.Lock:=StringAsCross(supTeacher.S['Lock']);
+    Teacher.Checked:=supTeacher.B['Checked'];
+  end;
 end;
 
 procedure TTeachers.SetItem(x: integer; const Value: TTeacher);
@@ -1306,7 +1378,7 @@ begin
   result := sts;
 end;
 
-function TTeachers.AsJSonObject: ISuperObject;
+function TTeachers.GetAsJSonObject: ISuperObject;
 var
   I: integer;
   supTeachers: TSuperArray;
@@ -2430,39 +2502,60 @@ begin
 
 end;
 
-procedure TSubjects.SaveTxtKabinets(var tx: TextFile);
+procedure TSubjects.SetAsJSonObject(const Value: ISuperObject);
+var
+  I, J, N: integer;
+  supSubjects: TSuperArray;
+  supTeachKabs: TSuperArray;
+  supSubject: ISuperObject;
+  supTeachKab: ISuperObject;
 begin
-  Writeln(tx, Kabinets.AsJSonObject.AsJSon(true));
-  Writeln(tx); // Пустая разделительная строка
-end;
+  Klasses.AsJSonObject:=Value.O['Klasses'];
+  Kabinets.AsJSonObject:=Value.O['Kabinets'];
+  Teachers.AsJSonObject:=Value.O['Teachers'];
+  SubjectNames.AsJSonObject:=Value.O['SubjectNames'];
+  FViewMode:=TViewMode(Value.I['ViewMode']);
+  FColumnMode:=TColumnMode(Value.I['ColumnMode']);
+  FTableContent:=TTableContent(Value.I['TableContent']);
+  WeekDaysAsString(FWeekDays):=Value.S['WeekDays'];
+  CrossAsString(FLessons):=Value.S['Lessons'];
+  FFullView:=Value.B['FullView'];
+  supSubjects := Value.A['Items'];
+  for I := 0 to supSubjects.Length - 1 do
+    with Item[I] do begin
+      supSubject := supSubjects[I];
+      if supSubject.I['KlassIndex'] = -1 then
+        Klass := nil
+      else
+        Klass:=Klasses[supSubject.I['KlassIndex']];
+      TeacherCount:=supSubject.I['TeacherCount'];
 
-procedure TSubjects.SaveTxtKlasses(var tx: TextFile);
-begin
-  Writeln(tx, Klasses.AsJSonObject.AsJSon(true));
-  Writeln(tx); // Пустая разделительная строка
-end;
+      'Я остановился здесь.'
 
-procedure TSubjects.SaveTxtSubjectNames(var tx: TextFile);
-begin
-  Write(tx, FSubjectNames.AsJSonObject.AsJSon(true));
-  Writeln(tx); // Пустая разделительная строка
-end;
+      supSubject.O['Items']:=so('[]');
+      supTeachKabs:=supSubject.A['Items'];
+      for J := 0 to TeacherCount - 1 do begin
+        supTeachKab := so;
+        if Teachers[J] = nil then
+          N := -1
+        else
+          N := Teachers[J].ItemIndex;
+        supTeachKab.I['TeacherIndex']:=N;
 
-procedure TSubjects.SaveTxtSubjects(var tx: TextFile);
-begin
-  Writeln(tx, AsJSonObject.AsJSon(true));
-  Writeln(tx); // Пустая разделительная строка
-end;
-
-procedure TSubjects.SaveTxtTeachers(var tx: TextFile);
-begin
-  Writeln(tx, Teachers.AsJSonObject.AsJSon(true)); // Конец Блока
-  Writeln(tx); // Пустая разделительная строка
-end;
-
-procedure TSubjects.SaveTxtTimeTable(var tx: TextFile);
-begin
-
+        if Kabinets[J] = nil then
+          N := -1
+        else
+          N := Kabinets[J].ItemIndex;
+        supTeachKab.I['KabinetIndex']:=N;
+        supTeachKabs.Add(supTeachKab);
+      end;
+      supSubject.I['Complexion']:=FComplexion;
+      supSubject.I['LessonAtWeek']:=FLessonAtWeek;
+      supSubject.I['NameIndex']:=FNameIndex;
+      supSubject.B['MultiLine']:=FMultiLine;
+      supSubject.I['OriginalSubjectIndex']:=0;
+      supSubjects.Add(supSubject);
+    end;
 end;
 
 procedure TSubjects.SetSubject(x: integer; const Value: TSubject);
@@ -2534,7 +2627,7 @@ begin
   Add(result);
 end;
 
-function TSubjects.AsJSonObject: ISuperObject;
+function TSubjects.GetAsJSonObject: ISuperObject;
 var
   I, J, N: integer;
   supSubjects: TSuperArray;
@@ -2543,6 +2636,10 @@ var
   supTeachKab: ISuperObject;
 begin
   Result := so;
+  Result.O['Klasses']:=Klasses.GetAsJSonObject;
+  Result.O['Kabinets']:=Kabinets.GetAsJSonObject;
+  Result.O['Teachers']:=Teachers.GetAsJSonObject;
+  Result.O['SubjectNames']:=SubjectNames.AsJSonObject;
   Result.S['ViewModeComment']:='0,1,2,3 = Предметы, заголовки, дни недели, номера уроков';
   Result.S['ColumnModeComment']:='0,1,2 = Классы, Учителя, Кабинеты';
   Result.S['TableContentComment']:='0,1,2 = Предметы, Учителя, Кабинеты';
@@ -2737,19 +2834,10 @@ begin
 end;
 
 procedure TSubjects.SaveToTextFile(fn: string);
-var
-  sup: ISuperObject;
 begin
  // Запись абсолютно всех данных в файл
  // TODO 3: SaveToFile (необходимо сохранить Current-данные)
-  sup:=so;
-  sup.O['Klasses']:=Klasses.AsJSonObject;
-  sup.O['Kabinets']:=Kabinets.AsJSonObject;
-  sup.O['Teachers']:=Teachers.AsJSonObject;
-  sup.O['SubjectNames']:=SubjectNames.AsJSonObject;
-  sup.O['Subjects']:=AsJSonObject;
-  // SaveTxtTimeTable(tx);
-  sup.SaveTo(fn,true);
+  AsJSonObject.SaveTo(fn,true);
 end;
 ////////////////////// Вспомогательные функции //////////////////////
 function ToName(s: string): TName;
