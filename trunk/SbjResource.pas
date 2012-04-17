@@ -95,7 +95,7 @@ var
 begin
   Result := [];
   for i := 0 to LessCount - 1 do
-    if s[ord(i) + 1] = '1' then
+    if s[ord(i) + 1] = 'X' then
       Result := Result + [i];
 end;
 
@@ -123,7 +123,7 @@ var
 begin
   Result := [];
   for i := wdMonday to wdSunday do
-    if s[ord(i) + 1] = '1' then
+    if s[ord(i) + 1] = 'X' then
       Result := Result + [i];
 end;
 
