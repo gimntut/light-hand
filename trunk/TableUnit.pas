@@ -131,7 +131,7 @@ end;
 procedure TTableForm.FormCreate(Sender: TObject);
 begin
   ss1.FileName := ProgramPath + 'default.rsp';
-  ss1.Load;//Txt;
+  ss1.LoadTxt;
 end;
 
 procedure TTableForm.FormDestroy(Sender: TObject);

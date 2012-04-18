@@ -62,6 +62,7 @@ type
     destructor Destroy; override;
     function Add(Long, Short: string; PIN: integer): integer; reintroduce; overload;
     procedure LoadFromStream(Stream: TStream); override;
+    procedure Clear; override;
     property AsJSonObject:ISuperObject read GetAsJSonObject write SetAsJSonObject;
     property LongName[x: integer]: string read GetLongName write SetLongName;
     property SanPIN[x: integer]: Integer read GetSanPIN write SetSanPIN;
@@ -429,9 +430,6 @@ type
     FLessons: TCross;
     FSubjectNames: TSubjNames;
     FFullView: boolean;
-    function DaNet(us: boolean): string;
-    function DaNetStr(s: string): boolean;
-    function ExTrim(s: string): String;
     function GetSubject(x: integer): TSubject;
     function LoadKabinets(sr: TStream): boolean;
     function LoadKlasses(sr: TStream): boolean;
@@ -439,15 +437,6 @@ type
     function LoadSubjects(sr: TStream): boolean;
     function LoadTeachers(sr: TStream): boolean;
     function LoadTimeTable(sr: TStream): boolean;
-    function LoadTxtKabinets(var tx: TextFile): boolean;
-    function LoadTxtKlasses(var tx: TextFile): boolean;
-    function LoadTxtSubjectNames(var tx: TextFile): boolean;
-    function LoadTxtSubjects(var tx: TextFile): boolean;
-    function LoadTxtTeachers(var tx: TextFile): boolean;
-    function LoadTxtTimeTable(var tx: TextFile): boolean;
-    function ReadDaNet(var tx: TextFile): Boolean;
-    function ReadEx(var tx: TextFile): String;
-    function ReadIntEx(var tx: TextFile): Integer;
     procedure SaveKabinets(sr: TStream);
     procedure SaveKlasses(sr: TStream);
     procedure SaveSubjectNames(sr: TStream);
@@ -599,17 +588,23 @@ var
   supNames: TSuperArray;
   supSubjName: ISuperObject;
 begin
-  Result := so;
+  Result := SO;
   Result.I['Count']:=Count;
-  Result.O['Items']:=so('[]');
+  Result.O['Items']:=SO('[]');
   supNames:=Result.A['Items'];
   for I := 0 to Count - 1 do begin
-    supSubjName:=so;
+    supSubjName:=SO;
     supSubjName.S['LongName']:=LongName[I];
     supSubjName.S['ShortName']:=ShortName[I];
     supSubjName.I['SanPIN']:=SanPIN[I];
     supNames.Add(supSubjName);
   end;
+end;
+
+procedure TSubjNames.Clear;
+begin
+  Longs.Clear;
+  inherited;
 end;
 
 constructor TSubjNames.Create;
@@ -1132,13 +1127,13 @@ var
   supKlasses: TSuperArray;
   supKlass: ISuperObject;
 begin
-  Result := so;
+  Result := SO;
   Result.S['FormatString']:=FormatString;
   Result.I['Count']:=Count;
-  Result.O['Items']:=so('[]');
+  Result.O['Items']:=SO('[]');
   supKlasses:=Result.A['Items'];
   for I := 0 to Count - 1 do begin
-    supKlass:=so;
+    supKlass:=SO;
     supKlass.S['Name']:=Item[I].Name;
     supKlass.S['Lock']:=CrossAsString(Item[I].Lock);
     supKlass.B['Checked']:=Item[I].Checked;
@@ -1181,6 +1176,7 @@ begin
   supKabinets:=Value.A['Items'];
   for I := 0 to supKabinets.Length - 1 do begin
     Kabinet:=AddNewItem;
+    supKabinet:=supKabinets[I];
     Kabinet.Name:=supKabinet.S['Name'];
     Kabinet.Num:=supKabinet.I['Num'];
     Kabinet.Lock:=StringAsCross(supKabinet.S['Lock']);
@@ -1254,12 +1250,12 @@ var
   supKabinets: TSuperArray;
   supKabinet: ISuperObject;
 begin
-  Result := so;
+  Result := SO;
   Result.I['Count']:=Count;
-  Result.O['Items']:=so('[]');
+  Result.O['Items']:=SO('[]');
   supKabinets:=Result.A['Items'];
   for I := 0 to Count - 1 do begin
-    supKabinet:=so;
+    supKabinet:=SO;
     supKabinet.S['Name']:=Item[I].Name;
     supKabinet.I['Num']:=Item[I].Num;
     supKabinet.S['Lock']:=CrossAsString(Item[I].Lock);
@@ -1320,6 +1316,7 @@ begin
   supTeachers:=Value.A['Items'];
   for I := 0 to supTeachers.Length - 1 do begin
     Teacher := AddNewItem;
+    supTeacher := supTeachers[I];
     Teacher.Name:=supTeacher.S['Name'];
     Teacher.KabNum:=supTeacher.I['KabNum'];
     Teacher.Lock:=StringAsCross(supTeacher.S['Lock']);
@@ -1384,13 +1381,13 @@ var
   supTeachers: TSuperArray;
   supTeacher: ISuperObject;
 begin
-  Result := so;
+  Result := SO;
   Result.I['Count']:=Count;
-  Result.O['Items']:=so('[]');
+  Result.O['Items']:=SO('[]');
   supTeachers:=Result.A['Items'];
   for I := 0 to Count - 1 do
     with Item[I] do begin
-      supTeacher := so;
+      supTeacher := SO;
       supTeacher.S['Name']:=Name;
       supTeacher.I['KabNum']:=KabNum;
       supTeacher.S['Lock']:=CrossAsString(Lock);
@@ -1991,26 +1988,6 @@ end;
                 { TSubjects }
 //////////////////////////////////////////////////
 {private}
-function TSubjects.DaNet(us: boolean): string;
-begin
-  Result := IfThen(us, 'Да', 'Нет');
-end;
-
-function TSubjects.DaNetStr(s: string): boolean;
-begin
-  result := AnsiUpperCase(s) = 'ДА';
-end;
-
-function TSubjects.ExTrim(s: string): String;
-var
-  p: integer;
-begin
-  p := Pos(#9#9#2, s);
-  if p > 1 then
-    s := Copy(s, 1, p - 1);
-  Result := s;
-end;
-
 function TSubjects.GetSubject(x: integer): TSubject;
 begin
  // Выдать предмет из списка
@@ -2205,161 +2182,6 @@ begin
   result := 1 = 1;
 end;
 
-function TSubjects.LoadTxtKabinets(var tx: TextFile): boolean;
-var
-  i, n: integer;
-begin
-  Readln(tx);//,'*** Информация о кабинетах ***');
-  with Kabinets do begin
-    Clear(true);
-    n := ReadIntEx(tx); // Количество кабинетов
-    for i := 0 to n - 1 do
-      with AddNewItem do begin
-        Name := ReadEx(tx); // Имя кабинета
-        Num := ReadIntEx(tx); // Номер кабинета
-        Lock := StringAsCross(ReadEx(tx));
-        Checked := ReadDaNet(tx); // Показывать кабинет в сетке
-        ShowNum := ReadDaNet(tx); // Показывать номер кабинета
-        Readln(tx); // Пустая разделительная строка
-      end;
-  end;
-  Readln(tx); // Конец Блока
-  Readln(tx); // Пустая разделительная строка
-  Result := true;
-end;
-
-function TSubjects.LoadTxtKlasses(var tx: TextFile): boolean;
-var
-  s: string;
-  i, n: integer;
-begin
-  Readln(tx, s);
-  with Klasses do begin
-    Clear;
-    FormatString := ReadEx(tx);
-    n := ReadIntEx(tx);
-    for i := 0 to n - 1 do
-      with AddNewItem do begin
-        Name := ReadEx(tx);
-        Lock := StringAsCross(ReadEx(tx));
-        Checked := ReadDaNet(tx);
-        Readln(tx);
-      end;
-  end;
-  Readln(tx);
-  Readln(tx);
-  Result := true;
-end;
-
-function TSubjects.LoadTxtSubjectNames(var tx: TextFile): boolean;
-var
-  i, n: integer;
-begin
-  Readln(tx);
-  n := ReadIntEx(tx);
-  FSubjectNames.Clear;
-  for i := 0 to n - 1 do
-    FSubjectNames.Add(ReadEx(tx));
-  Readln(tx);
-  Readln(tx);
-  Result := true;
-end;
-
-function TSubjects.LoadTxtSubjects(var tx: TextFile): boolean;
-var
-  i, j, n: integer;
-  tch: TTeacher;
-  kab: TKabinet;
-begin
-  Readln(tx);
-  FViewMode := TViewMode(Str2Int(ReadEx(tx)));
-  FColumnMode := TColumnMode(Str2Int(ReadEx(tx)));
-  FTableContent := TTableContent(Str2Int(ReadEx(tx)));
-  FWeekDays := StringAsWeekDays(ReadEx(tx));
-  FLessons := StringAsCross(ReadEx(tx));
-  FFullView := DaNetStr(ReadEx(tx));
-  n := Str2Int(ReadEx(tx));
-  for i := 0 to n - 1 do
-    with Add do begin
-      n := Str2Int(ReadEx(tx));
-      if n = -1 then
-        Klass := nil
-      else
-        Klass := Klasses[n];
-      n := ReadIntEx(tx);
-      for j := 0 to n - 1 do begin
-        n := ReadIntEx(tx);
-        if n = -1 then
-          tch := nil
-        else
-          tch := self.Teachers[n];
-        n := ReadIntEx(tx);
-        if n = -1 then
-          kab := nil
-        else
-          kab := self.Kabinets[n];
-        Add(tch, kab);
-      end;
-      FComplexion := ReadIntEx(tx);
-      FLessonAtWeek := ReadIntEx(tx);
-      FNameIndex := ReadIntEx(tx);
-      FMultiLine := ReadDaNet(tx);
-      Readln(tx); // Порядковый номер родителя
-      Readln(tx); // Пустая разделительная строка
-    end;
-  Readln(tx); // Конец Блока
-  Readln(tx); // Пустая разделительная строка
-  Result := true;
-end;
-
-function TSubjects.LoadTxtTeachers(var tx: TextFile): boolean;
-var
-  i, n: integer;
-begin
-  Readln(tx); //,'*** Информация о учителях ***'
-  with Teachers do begin
-    Clear;
-    n := ReadIntEx(tx); //Количесво учителей
-    for i := 0 to n - 1 do
-      with AddNewItem do begin
-        Name := ReadEx(tx); // ФИО учителя
-        KabNum := ReadIntEx(tx);  // Номер основного кабинета
-        Lock := StringAsCross(ReadEx(tx)); // Уроки заблокированные для учителя'
-        Checked := ReadDaNet(tx);
-        Readln(tx); // Пустая разделительная строка
-      end;
-  end;
-  Readln(tx); // Конец Блока
-  Readln(tx); // Пустая разделительная строка
-  Result := true;
-end;
-
-function TSubjects.LoadTxtTimeTable(var tx: TextFile): boolean;
-begin
-  Result := true;
-end;
-
-function TSubjects.ReadDaNet(var tx: TextFile): boolean;
-begin
-  Result := DaNetStr(ReadEx(tx));
-end;
-
-function TSubjects.ReadEx(var tx: TextFile): String;
-var
-  s: string;
-begin
-  Readln(tx, s);
-  Result := ExTrim(s);
-end;
-
-function TSubjects.ReadIntEx(var tx: TextFile): Integer;
-var
-  s: string;
-begin
-  s := ReadEx(tx);
-  Result := Str2Int(s);
-end;
-
 procedure TSubjects.SaveKabinets(sr: TStream);
 var
   ms: TMemoryStream;
@@ -2504,11 +2326,14 @@ end;
 
 procedure TSubjects.SetAsJSonObject(const Value: ISuperObject);
 var
-  I, J, N: integer;
+  I, J: integer;
   supSubjects: TSuperArray;
   supTeachKabs: TSuperArray;
   supSubject: ISuperObject;
   supTeachKab: ISuperObject;
+  Subject:TSubject;
+  Kabinet:TKabinet;
+  Teacher:TTeacher;
 begin
   Klasses.AsJSonObject:=Value.O['Klasses'];
   Kabinets.AsJSonObject:=Value.O['Kabinets'];
@@ -2517,45 +2342,27 @@ begin
   FViewMode:=TViewMode(Value.I['ViewMode']);
   FColumnMode:=TColumnMode(Value.I['ColumnMode']);
   FTableContent:=TTableContent(Value.I['TableContent']);
-  WeekDaysAsString(FWeekDays):=Value.S['WeekDays'];
-  CrossAsString(FLessons):=Value.S['Lessons'];
+  FWeekDays:=StringAsWeekDays(Value.S['WeekDays']);
+  FLessons:=StringAsCross(Value.S['Lessons']);
   FFullView:=Value.B['FullView'];
   supSubjects := Value.A['Items'];
-  for I := 0 to supSubjects.Length - 1 do
-    with Item[I] do begin
-      supSubject := supSubjects[I];
-      if supSubject.I['KlassIndex'] = -1 then
-        Klass := nil
-      else
-        Klass:=Klasses[supSubject.I['KlassIndex']];
-      TeacherCount:=supSubject.I['TeacherCount'];
-
-      'Я остановился здесь.'
-
-      supSubject.O['Items']:=so('[]');
-      supTeachKabs:=supSubject.A['Items'];
-      for J := 0 to TeacherCount - 1 do begin
-        supTeachKab := so;
-        if Teachers[J] = nil then
-          N := -1
-        else
-          N := Teachers[J].ItemIndex;
-        supTeachKab.I['TeacherIndex']:=N;
-
-        if Kabinets[J] = nil then
-          N := -1
-        else
-          N := Kabinets[J].ItemIndex;
-        supTeachKab.I['KabinetIndex']:=N;
-        supTeachKabs.Add(supTeachKab);
-      end;
-      supSubject.I['Complexion']:=FComplexion;
-      supSubject.I['LessonAtWeek']:=FLessonAtWeek;
-      supSubject.I['NameIndex']:=FNameIndex;
-      supSubject.B['MultiLine']:=FMultiLine;
-      supSubject.I['OriginalSubjectIndex']:=0;
-      supSubjects.Add(supSubject);
+  for I := 0 to supSubjects.Length - 1 do begin
+    Subject := Add;
+    supSubject := supSubjects[I];
+    Subject.Klass:=Klasses[supSubject.I['KlassIndex']];
+    supSubject.O['Items']:=SO('[]');
+    supTeachKabs:=supSubject.A['Items'];
+    for J := 0 to supTeachKabs.Length - 1 do begin
+      supTeachKab := supTeachKabs[J];
+      Teacher := Teachers[supTeachKab.I['TeacherIndex']];
+      Kabinet := Kabinets[supTeachKab.I['KabinetIndex']];
+      Subject.Add(Teacher,Kabinet);
     end;
+    Subject.FComplexion:=supSubject.I['Complexion'];
+    Subject.FLessonAtWeek:=supSubject.I['LessonAtWeek'];
+    Subject.FNameIndex:=supSubject.I['NameIndex'];
+    Subject.FMultiLine:=supSubject.B['MultiLine'];
+  end;
 end;
 
 procedure TSubjects.SetSubject(x: integer; const Value: TSubject);
@@ -2635,7 +2442,7 @@ var
   supSubject: ISuperObject;
   supTeachKab: ISuperObject;
 begin
-  Result := so;
+  Result := SO;
   Result.O['Klasses']:=Klasses.GetAsJSonObject;
   Result.O['Kabinets']:=Kabinets.GetAsJSonObject;
   Result.O['Teachers']:=Teachers.GetAsJSonObject;
@@ -2651,21 +2458,21 @@ begin
   Result.S['Lessons']:=CrossAsString(FLessons);
   Result.B['FullView']:=FFullView;
   Result.I['Count']:=Count;
-  Result.O['Items']:=so('[]');
+  Result.O['Items']:=SO('[]');
   supSubjects := Result.A['Items'];
   for I := 0 to MaxInd do
     with Item[I] do begin
-      supSubject := so;
+      supSubject := SO;
       if Klass = nil then
         N := -1
       else
         N := Klass.ItemIndex;
       supSubject.I['KlassIndex']:=N;
       supSubject.I['TeacherCount']:=TeacherCount;
-      supSubject.O['Items']:=so('[]');
+      supSubject.O['Items']:=SO('[]');
       supTeachKabs:=supSubject.A['Items'];
       for J := 0 to TeacherCount - 1 do begin
-        supTeachKab := so;
+        supTeachKab := SO;
         if Teachers[J] = nil then
           N := -1
         else
@@ -2792,18 +2599,25 @@ end;
 
 procedure TSubjects.LoadFromTextFile(fn: string);
 var
-  tx: TextFile;
+//  tx: TextFile;
+  SupObj: ISuperObject;
+  sts:TStringList;
 begin
  // Чтение абсолютно всех данных из файла
-  AssignFile(tx, fn);
-  Reset(tx);
-  LoadTxtKlasses(tx);
-  LoadTxTKabinets(tx);
-  LoadTxtTeachers(tx);
-  LoadTxtSubjectNames(tx);
-  LoadTxtSubjects(tx);
-  LoadTxtTimeTable(tx);
-  CloseFile(tx);
+//  AssignFile(tx, fn);
+//  Reset(tx);
+//  LoadTxtKlasses(tx);
+//  LoadTxTKabinets(tx);
+//  LoadTxtTeachers(tx);
+//  LoadTxtSubjectNames(tx);
+//  LoadTxtSubjects(tx);
+//  LoadTxtTimeTable(tx);
+//  CloseFile(tx);
+    sts:=TStringList.Create;
+    sts.LoadFromFile(fn);
+    SupObj := SO(sts.Text);
+    AsJSonObject:= SupObj;
+    sts.Free;
 end;
 
 procedure TSubjects.Save(srBig: TStream; Key: string; srSmall: TStream);
@@ -2864,7 +2678,8 @@ end;
 
 function TSimpleItem.GetAvailableSubjects(LessonIndex: integer): TSubjects;
 begin
-
+  // Заглушка
+  Result:=nil;
 end;
 
 function TSimpleItem.GetSubjsInTT(LessonIndex: Integer): TPlainSubjects;
