@@ -302,6 +302,7 @@ type
  // prop Klass - класс в котором проходит предмет
  // prop KlassTitle - Класс+(Предмет/Кабинет/Учитель)
  // prop LessonAtWeek - Максимальное число часов в неделю
+ // prop LessonIndex - Номер урока вставленного в расписание.
  // prop LongKlassName - Полное название класса
  // prop LongName - Полное название предмета
  // prop MultiLine - Многострочная информация о предмете (True/False)
@@ -329,6 +330,7 @@ type
     FTeachers: array of TTeacher;
     FTimeTableX: TTimeTableX;
     MaxInd: integer;
+    FLessonIndex: Integer;
     function GetCross: TCross;
     function GetInfo: string;
     function GetKabinets(x: integer): TKabinet;
@@ -350,6 +352,7 @@ type
     procedure SetNameIndex(const Value: integer);
     procedure SetTeacherCount(const Value: integer);
     procedure SetTeachers(x: integer; const Value: TTeacher);
+    procedure SetLessonIndex(const Value: Integer);
   protected
     procedure SetIndex(const Value: integer); override;
     property InTimeTable: Integer read FInTimeTable write SetInTimeTable;
@@ -367,6 +370,7 @@ type
     property Klass: TKlass read FKlass write SetKlass;
     property KlassTitle[tc: TTableContent]: string read GetKlassTitle;
     property LessonAtWeek: Integer read FLessonAtWeek write FLessonAtWeek;
+    property LessonIndex:Integer read FLessonIndex write SetLessonIndex;
     property LongKlassName: string read GetLongKlassName;
     property LongName: string read GetLongName;
     property MultiLine: boolean read FMultiLine write FMultiLine;
@@ -1049,6 +1053,7 @@ begin
   FormatString:=Value.S['FormatString'];
   supKlasses:=Value.A['Items'];
   for I := 0 to supKlasses.Length - 1 do begin
+    supKlass:=supKlasses[I];
     Klass:=AddNewItem;
     Klass.Name:=supKlass.S['Name'];
     Klass.Lock:=StringAsCross(supKlass.S['Lock']);
@@ -1175,8 +1180,9 @@ begin
   Clear(True);
   supKabinets:=Value.A['Items'];
   for I := 0 to supKabinets.Length - 1 do begin
-    Kabinet:=AddNewItem;
     supKabinet:=supKabinets[I];
+    if supKabinet.I['Num']=-1 then Continue;
+    Kabinet:=AddNewItem;
     Kabinet.Name:=supKabinet.S['Name'];
     Kabinet.Num:=supKabinet.I['Num'];
     Kabinet.Lock:=StringAsCross(supKabinet.S['Lock']);
@@ -1652,6 +1658,11 @@ begin
     Exit;
   if FKlass <> nil then
     FKlass.SubjectX.Add(self);
+end;
+
+procedure TSubject.SetLessonIndex(const Value: Integer);
+begin
+  FLessonIndex := Value;
 end;
 
 procedure TSubject.SetNameIndex(const Value: integer);
@@ -2335,6 +2346,7 @@ var
   Kabinet:TKabinet;
   Teacher:TTeacher;
 begin
+  Clear;
   Klasses.AsJSonObject:=Value.O['Klasses'];
   Kabinets.AsJSonObject:=Value.O['Kabinets'];
   Teachers.AsJSonObject:=Value.O['Teachers'];
@@ -2350,7 +2362,6 @@ begin
     Subject := Add;
     supSubject := supSubjects[I];
     Subject.Klass:=Klasses[supSubject.I['KlassIndex']];
-    supSubject.O['Items']:=SO('[]');
     supTeachKabs:=supSubject.A['Items'];
     for J := 0 to supTeachKabs.Length - 1 do begin
       supTeachKab := supTeachKabs[J];
@@ -2599,25 +2610,14 @@ end;
 
 procedure TSubjects.LoadFromTextFile(fn: string);
 var
-//  tx: TextFile;
   SupObj: ISuperObject;
   sts:TStringList;
 begin
- // Чтение абсолютно всех данных из файла
-//  AssignFile(tx, fn);
-//  Reset(tx);
-//  LoadTxtKlasses(tx);
-//  LoadTxTKabinets(tx);
-//  LoadTxtTeachers(tx);
-//  LoadTxtSubjectNames(tx);
-//  LoadTxtSubjects(tx);
-//  LoadTxtTimeTable(tx);
-//  CloseFile(tx);
-    sts:=TStringList.Create;
-    sts.LoadFromFile(fn);
-    SupObj := SO(sts.Text);
-    AsJSonObject:= SupObj;
-    sts.Free;
+  sts:=TStringList.Create;
+  sts.LoadFromFile(fn);
+  SupObj := SO(sts.Text);
+  AsJSonObject:= SupObj;
+  sts.Free;
 end;
 
 procedure TSubjects.Save(srBig: TStream; Key: string; srSmall: TStream);

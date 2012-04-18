@@ -123,7 +123,7 @@
 			<Directories Name="UnitOutputDir">.\DCU</Directories>
 			<Directories Name="PackageDLLOutputDir"></Directories>
 			<Directories Name="PackageDCPOutputDir"></Directories>
-			<Directories Name="SearchPath">$(delphi)\lib\debug;$(DELPHI)\Lib\Debug;$(DELPHI)\Source\ToolsAPI</Directories>
+			<Directories Name="SearchPath">$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;$(delphi)\lib\debug;$(DELPHI)\Lib\Debug;$(DELPHI)\Source\ToolsAPI</Directories>
 			<Directories Name="Packages">VCL40;VCLX40;VCLDB40;VCLSMP40;QRPT40;vcl;rtl;dbrtl;vclactnband;vclx;bdertl;VclSmp;PublDpk</Directories>
 			<Directories Name="Conditionals"></Directories>
 			<Directories Name="DebugSourceDirs"></Directories>
