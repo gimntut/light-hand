@@ -1071,40 +1071,40 @@ end;
 
 procedure TSubjSource.Load(AFileName: string);
 var
-  XFile: String;
+  FN: String;
 begin
-  XFile := IfThen(AFileName = '', FFileName, AFileName);
-  if XFile <> '' then
-    Subjs.LoadFromFile(XFile);
+  FN := IfThen(AFileName = '', FFileName, AFileName);
+  if FN <> '' then
+    Subjs.LoadFromFile(FN);
   NotifyLink(seRefresh);
 end;
 
 procedure TSubjSource.LoadTxt(AFileName: string);
 var
-  XFile: String;
+  FN: String;
 begin
-  XFile := IfThen(AFileName = '', FFileName + '.txt', AFileName);
-  if XFile <> '' then
-    Subjs.LoadFromTextFile(XFile);
+  FN := IfThen(AFileName = '', FFileName + '.txt', AFileName);
+  if FN <> '' then
+    Subjs.LoadFromTextFile(FN);
   NotifyLink(seRefresh);
 end;
 
 procedure TSubjSource.Save(AFileName: string);
 var
-  XFile: String;
+  FN: String;
 begin
-  XFile := IfThen(AFileName = '', FFileName, AFileName);
-  if XFile <> '' then
-    Subjs.SaveToFile(XFile);
+  FN := IfThen(AFileName = '', FFileName, AFileName);
+  if FN <> '' then
+    Subjs.SaveToFile(FN);
 end;
 
 procedure TSubjSource.SaveTxt(AFileName: string);
 var
-  XFile: String;
+  FN: String;
 begin
-  XFile := IfThen(AFileName = '', FFileName + '.txt', AFileName);
-  if XFile <> '' then
-    Subjs.SaveToTextFile(XFile);
+  FN := IfThen(AFileName = '', FFileName + '.txt', AFileName);
+  if FN <> '' then
+    Subjs.SaveToTextFile(FN);
 end;
 
 procedure TSubjSource.Swap(TypeOfSubj: TTypeOfData; Ind1, Ind2: integer);
