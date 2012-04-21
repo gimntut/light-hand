@@ -49,11 +49,11 @@ type
     function GetMaxInd: integer;
     function GetSanPIN(Index: integer): Integer;
     function GetShortName(Index: integer): string;
-    function GetAsJSonObject:ISuperObject;
+    function GetAsJsonObject:ISuperObject;
     procedure SetLongName(Index: integer; const Value: string);
     procedure SetSanPIN(Index: integer; const Value: Integer);
     procedure SetShortName(Index: integer; const Value: string);
-    procedure SetAsJSonObject(const Value: ISuperObject);
+    procedure SetAsJsonObject(const Value: ISuperObject);
   protected
     procedure Put(Index: Integer; const S: string); override;
     property MaxInd: integer read GetMaxInd;
@@ -63,7 +63,7 @@ type
     function Add(Long, Short: string; PIN: integer): integer; reintroduce; overload;
     procedure LoadFromStream(Stream: TStream); override;
     procedure Clear; override;
-    property AsJSonObject:ISuperObject read GetAsJSonObject write SetAsJSonObject;
+    property AsJsonObject:ISuperObject read GetAsJsonObject write SetAsJsonObject;
     property LongName[x: integer]: string read GetLongName write SetLongName;
     property SanPIN[x: integer]: Integer read GetSanPIN write SetSanPIN;
     property ShortName[x: integer]: string read GetShortName write SetShortName;
@@ -228,10 +228,10 @@ type
     sts: TStringList;
     function GetFullKlassName(x: integer): string;
     function GetItem(x: integer): TKlass;
-    function GetAsJSonObject:ISuperObject;
+    function GetAsJsonObject:ISuperObject;
     procedure SetFormatString(const Value: string);
     procedure SetItem(x: integer; const Value: TKlass);
-    procedure SetAsJSonObject(const Value: ISuperObject);
+    procedure SetAsJsonObject(const Value: ISuperObject);
   public
     constructor Create(AutoIndex: boolean);
     destructor Destroy; override;
@@ -239,7 +239,7 @@ type
     function IndexOf(Name: string): integer;
     function Lines(short: boolean): TStrings;
     procedure Assign(Source: TPersistent); override;
-    property AsJSonObject:ISuperObject read GetAsJSonObject write SetAsJSonObject;
+    property AsJsonObject:ISuperObject read GetAsJsonObject write SetAsJsonObject;
     property FormatString: string read FFormatString write SetFormatString;
     property FullKlassName[x: integer]: string read GetFullKlassName;
     property Item[x: integer]: TKlass read GetItem write SetItem; default;
@@ -251,9 +251,9 @@ type
     AnyKabinet: TKabinet;
     sts: TStringList;
     function GetItem(x: integer): TKabinet;
-    function GetAsJSonObject:ISuperObject;
+    function GetAsJsonObject:ISuperObject;
     procedure SetItem(x: integer; const Value: TKabinet);
-    procedure SetAsJSonObject(const Value: ISuperObject);
+    procedure SetAsJsonObject(const Value: ISuperObject);
   public
     constructor Create(AutoIndex: boolean);
     destructor Destroy; override;
@@ -262,7 +262,7 @@ type
     function Lines(Short: boolean): TStrings;
     procedure Assign(Source: TPersistent); override;
     procedure Clear(AutoFree: boolean);
-    property AsJSonObject:ISuperObject read GetAsJSonObject write SetAsJSonObject;
+    property AsJsonObject:ISuperObject read GetAsJsonObject write SetAsJsonObject;
     property Item[x: integer]: TKabinet read GetItem write SetItem; default;
   end;
  ////////////////////// x //////////////////////
@@ -271,9 +271,9 @@ type
   private
     sts: TStringList;
     function GetItem(x: integer): TTeacher;
-    function GetAsJSonObject: ISuperObject;
+    function GetAsJsonObject: ISuperObject;
     procedure SetItem(x: integer; const Value: TTeacher);
-    procedure SetAsJSonObject(const Value: ISuperObject);
+    procedure SetAsJsonObject(const Value: ISuperObject);
   public
     constructor Create(AutoIndex: boolean);
     destructor Destroy; override;
@@ -281,7 +281,7 @@ type
     function IndexOf(Name: string): integer;
     function Lines(Short: boolean): TStrings;
     procedure Assign(Source: TPersistent); override;
-    property AsJSonObject: ISuperObject read GetAsJSonObject write SetAsJSonObject;
+    property AsJsonObject: ISuperObject read GetAsJsonObject write SetAsJsonObject;
     property Item[x: integer]: TTeacher read GetItem write SetItem; default;
   end;
  ////////////////////// x //////////////////////
@@ -416,7 +416,7 @@ type
     FLessons: TPlainSubjects;
     function GetForKabinet(KabinetIndex, LessonIndex: integer): TSubs;
     function GetForTeacher(TeacherIndex, LessonIndex: integer): TSubs;
-    function GetItems(KlassIndex, LessonIndex: integer): TSubject;
+    function GetForKlasses(KlassIndex, LessonIndex: integer): TSubject;
     procedure ClearSubjs;
     procedure SetSubjects(const Value: TSubjects);
     function GetKlasses: TKlasses;
@@ -436,7 +436,7 @@ type
     procedure Delete(LessonIndex: integer; Subject: TSubject); overload;
     procedure Delete(LessonIndex: integer; Teacher: TTeacher); overload;
     property ForKabinet[KabinetIndex, LessonIndex: integer]: TSubs read GetForKabinet;
-    property ForKlasses[KlassIndex, LessonIndex: integer]: TSubject read GetItems;
+    property ForKlasses[KlassIndex, LessonIndex: integer]: TSubject read GetForKlasses;
     property ForTeacher[TeacherIndex, LessonIndex: integer]: TSubs read GetForTeacher;
     property Subjects: TSubjects read FSubjects write SetSubjects;
     property Lessons: TPlainSubjects read FLessons;
@@ -470,8 +470,11 @@ type
     procedure SaveTeachers(sr: TStream);
     procedure SaveTimeTable(sr: TStream);
     procedure SetSubject(x: integer; const Value: TSubject);
-    function GetAsJSonObject: ISuperObject;
-    procedure SetAsJSonObject(const Value: ISuperObject);
+    function GetAsJsonObject: ISuperObject;
+    procedure SetAsJsonObject(const Value: ISuperObject);
+    //
+    procedure Load(srBig: TStream; var Key: string; var srSmall: TStream);
+    procedure Save(srBig: TStream; Key: string; srSmall: TStream);
   public
     constructor Create;
     destructor Destroy; override;
@@ -480,17 +483,15 @@ type
     function IsCross(subj1, subj2: TSubject): boolean;
     procedure Clear;
     procedure Delete(Subject: TSubject); overload;
-    procedure Delete(x: Integer); overload;
-    procedure Load(srBig: TStream; var Key: string; var srSmall: TStream);
-    procedure LoadFromFile(fn: string);
-    procedure LoadFromTextFile(fn: string);
-    procedure Save(srBig: TStream; Key: string; srSmall: TStream);
-    procedure SaveToFile(fn: string);
-    procedure SaveToTextFile(fn: string);
-    property AsJSonObject:ISuperObject read GetAsJSonObject write SetAsJSonObject;
+    procedure Delete(Index: Integer); overload;
+    procedure LoadFromFile(FN: string);
+    procedure LoadFromTextFile(FN: string);
+    procedure SaveToFile(FN: string);
+    procedure SaveToTextFile(FN: string);
+    property AsJsonObject:ISuperObject read GetAsJsonObject write SetAsJsonObject;
     property ColumnMode: TColumnMode read FColumnMode write FColumnMode;
     property FullView: boolean read FFullView write FFullView;
-    property Item[x: integer]: TSubject read GetSubject write SetSubject; default;
+    property Item[Index: integer]: TSubject read GetSubject write SetSubject; default;
     property Kabinets: TKabinets read FKabinets;
     property Klasses: TKlasses read FKlasses;
     property Lessons: TCross read FLessons write FLessons;
@@ -514,34 +515,34 @@ uses DateUtils, Math, StrUtils;
 {private}
 function TSubjNames.GetLongName(Index: integer): string;
 begin
-  result := '';
+  Result := '';
   if (Index < 0) or (Index > MaxInd) then
     Exit;
-  result := ToName(Strings[Index]).Long;
+  Result := ToName(Strings[Index]).Long;
 end;
 
 function TSubjNames.GetMaxInd: integer;
 begin
-  result := Count - 1;
+  Result := Count - 1;
 end;
 
 function TSubjNames.GetSanPIN(Index: integer): Integer;
 begin
-  result := 0;
+  Result := 0;
   if (Index < 0) or (Index > MaxInd) then
     Exit;
-  result := ToName(Strings[Index]).Pin;
+  Result := ToName(Strings[Index]).Pin;
 end;
 
 function TSubjNames.GetShortName(Index: integer): string;
 begin
-  result := '';
+  Result := '';
   if (Index < 0) or (Index > MaxInd) then
     Exit;
-  result := ToName(Strings[Index]).Short;
+  Result := ToName(Strings[Index]).Short;
 end;
 
-procedure TSubjNames.SetAsJSonObject(const Value: ISuperObject);
+procedure TSubjNames.SetAsJsonObject(const Value: ISuperObject);
 var
   I:Integer;
   supNames: TSuperArray;
@@ -598,17 +599,17 @@ end;
 procedure TSubjNames.Put(Index: Integer; const S: string);
 var
   Name: TName;
-  i: integer;
+  I: integer;
 begin
-  if Longs.Find(LongName[index], i) then
-    Longs.Delete(i);
+  if Longs.Find(LongName[index], I) then
+    Longs.Delete(I);
   inherited;
   Name := ToName(s);
   Longs.Add(Name.Long);
 end;
 
 {public}
-function TSubjNames.GetAsJSonObject: ISuperObject;
+function TSubjNames.GetAsJsonObject: ISuperObject;
 var
   I:Integer;
   supNames: TSuperArray;
@@ -637,7 +638,7 @@ constructor TSubjNames.Create;
 begin
   Longs := TStringList.Create;
   Longs.CaseSensitive := false;
-  Longs.Sorted := true;
+  Longs.Sorted := True;
   Longs.Duplicates := dupIgnore;
 end;
 
@@ -649,36 +650,36 @@ end;
 
 function TSubjNames.Add(Long, Short: string; PIN: integer): integer;
 var
-  i, x: integer;
+  I, x: integer;
   s: string;
   Name: TName;
 begin
   s := FromName(Long, Short, Pin);
   if Longs.Find(Long, x) then begin
-    for i := 0 to MaxInd do begin
-      Name := ToName(Strings[i]);
+    for I := 0 to MaxInd do begin
+      Name := ToName(Strings[I]);
       if SameText(Name.Long, Long) then begin
-        x := i;
+        x := I;
         break;
       end;
     end;
     strings[x] := s;
-    result := x;
+    Result := x;
   end
   else begin
     Longs.Add(Long);
-    result := self.Add(s);
+    Result := self.Add(s);
   end;
 end;
 
 procedure TSubjNames.LoadFromStream(Stream: TStream);
 var
-  i: integer;
+  I: integer;
 begin
   inherited;
   Longs.Clear;
-  for i := 0 to MaxInd do
-    Longs.Add(LongName[i]);
+  for I := 0 to MaxInd do
+    Longs.Add(LongName[I]);
 end;
 
 //////////////////////////////////////////////////
@@ -693,14 +694,14 @@ end;
 {public}
 constructor TSimpleItem.Create;
 var
-  i: integer;
+  I: integer;
 begin
   inherited;
-  for i := 0 to LessCount - 1 do
-    FSubjInTT[i] := TPlainSubjects.Create(false);
+  for I := 0 to LessCount - 1 do
+    FSubjInTT[I] := TPlainSubjects.Create(false);
   FName := '';
   FPlainSubjectX := TPlainSubjects.Create(false);
-  FChecked := true;
+  FChecked := True;
   FLock := [];
   FCross := [];
 end;
@@ -713,12 +714,12 @@ end;
 
 function TSimpleItem.IsCross(ALesson: Integer): boolean;
 begin
-  result := ALesson in FCross;
+  Result := ALesson in FCross;
 end;
 
 function TSimpleItem.IsLock(ALesson: Integer): boolean;
 begin
-  result := ALesson in FLock;
+  Result := ALesson in FLock;
 end;
 
 procedure TSimpleItem.SwitchLock(LessonIndex: integer);
@@ -741,41 +742,41 @@ function TTimeTableX.GetItems(ALesson: integer): TIntegers;
 begin
   if (ALesson < 0) or (ALesson > LessCount - 1) then begin
     NullItem.Clear;
-    result := NullItem;
+    Result := NullItem;
   end
   else
-    result := FItems[ALesson];
+    Result := FItems[ALesson];
 end;
 
 {public}
 constructor TTimeTableX.Create;
 var
-  i: integer;
+  I: integer;
 begin
   inherited;
-  for i := 0 to LessCount - 1 do
-    FItems[i] := TIntegers.Create;
+  for I := 0 to LessCount - 1 do
+    FItems[I] := TIntegers.Create;
   NullItem := TIntegers.Create;
 end;
 
 destructor TTimeTableX.Destroy;
 var
-  i: integer;
+  I: integer;
 begin
-  for i := 0 to LessCount - 1 do
-    FItems[i].Free;
+  for I := 0 to LessCount - 1 do
+    FItems[I].Free;
   NullItem.Free;
   inherited;
 end;
 
 procedure TTimeTableX.Assign(Source: TPersistent);
 var
-  i: integer;
+  I: integer;
 begin
   if Source is TTimeTableX then
-    for i := 0 to LessCount - 1 do begin
-      FItems[i].Clear;
-      FItems[i].Add(TTimeTableX(Source).Klasses[i]);
+    for I := 0 to LessCount - 1 do begin
+      FItems[I].Clear;
+      FItems[I].Add(TTimeTableX(Source).Klasses[I]);
     end
   else
     inherited Assign(Source);
@@ -787,15 +788,15 @@ end;
 {private}
 function TRefItem.GetCross: TCross;
 begin
-  result := inherited GetCross;
+  Result := inherited GetCross;
 end;
 
 function TRefItem.GetCrossRef(Lesson: Integer): Integer;
 begin
-  result := 0;
+  Result := 0;
   if (Lesson < 0) or (Lesson >= LessCount) then
     Exit;
-  result := FCrossRef[Lesson];
+  Result := FCrossRef[Lesson];
 end;
 
 {public}
@@ -835,10 +836,10 @@ end;
 {private}
 function TKlass.GetLessAbs(LessonIndex: integer): TSubject;
 begin
-  result := nil;
+  Result := nil;
   if (LessonIndex < 0) or (LessonIndex > LessCount - 1) then
     Exit;
-  result := FLesson[LessonIndex];
+  Result := FLesson[LessonIndex];
 end;
 
 function TKlass.GetLesson(WeekDay, LessonNumber: integer): TSubject;
@@ -846,25 +847,25 @@ var
   x: integer;
 begin
   x := WeekDay * 11 + LessonNumber;
-  result := LessAbs[x];
+  Result := LessAbs[x];
 end;
 
 function TKlass.GetWDSanPIN(WD: Integer): Real;
 begin
-  result := 0;
+  Result := 0;
   if FMaxSanPIN = 0 then
     Exit;
-  result := FWDSanPIN[wd] / FMaxSanPIN;
+  Result := FWDSanPIN[wd] / FMaxSanPIN;
 end;
 
 procedure TKlass.FindMaxSanPIN;
 var
-  i: integer;
+  I: integer;
 begin
   FMaxSanPIN := 0;
-  for i := 0 to WDCount - 1 do
-    if FMaxSanPIN < FWDSanPIN[i] then
-      FMaxSanPIN := FWDSanPIN[i];
+  for I := 0 to WDCount - 1 do
+    if FMaxSanPIN < FWDSanPIN[I] then
+      FMaxSanPIN := FWDSanPIN[I];
 end;
 
 procedure TKlass.SetLessAbs(LessonIndex: integer; const Value: TSubject);
@@ -901,13 +902,13 @@ end;
 {public}
 constructor TKlass.Create;
 var
-  i: integer;
+  I: integer;
 begin
   inherited;
   FTeachers := TTeachers.Create(false);
   FKabinets := TKabinets.Create(false);
-  for i := 0 to LessCount - 1 do
-    FLesson[i] := nil;
+  for I := 0 to LessCount - 1 do
+    FLesson[I] := nil;
 end;
 
 destructor TKlass.Destroy;
@@ -919,7 +920,7 @@ end;
 
 procedure TKlass.Assign(Source: TPersistent);
 var
-  i: integer;
+  I: integer;
 begin
   if Source is TKlass then
     with TKlass(Source) do begin
@@ -930,8 +931,8 @@ begin
       self.FChecked := Checked;
       self.FLock := Lock;
       self.FCross := Cross;
-      for i := 0 to LessCount - 1 do
-        self.FLesson[i] := LessAbs[i];
+      for I := 0 to LessCount - 1 do
+        self.FLesson[I] := LessAbs[I];
     end
   else
     inherited Assign(Source);
@@ -958,14 +959,14 @@ end;
 
 function TKabinet.FullName: string;
 begin
-  result := FName;
+  Result := FName;
   if FShowNum then
-    result := result + ' (' + IntToStr(FNum) + ')';
+    Result := Result + ' (' + IntToStr(FNum) + ')';
 end;
 
 procedure TKabinet.Assign(Source: TPersistent);
 var
-  i: integer;
+  I: integer;
 begin
   if Source is TKabinet then
     with TKabinet(Source) do begin
@@ -978,7 +979,7 @@ begin
       self.FChecked := Checked;
       self.FLock := Lock;
       self.FShowNum := ShowNum;
-      for i := 0 to LessCount - 1 do
+      for I := 0 to LessCount - 1 do
         self.FCrossRef := FCrossRef;
     end
   else
@@ -1009,21 +1010,21 @@ var
   p: integer;
 begin
   s := fName;
-  result := s;
+  Result := s;
   p := pos(' ', s);
   if p = 0 then
     Exit;
-  result := Copy(s, 1, p + 1) + '.';
+  Result := Copy(s, 1, p + 1) + '.';
   Delete(s, 1, p + 1);
   p := pos(' ', s);
   if p = 0 then
     Exit;
-  result := result + Copy(s, p + 1, 1) + '.';
+  Result := Result + Copy(s, p + 1, 1) + '.';
 end;
 
 procedure TTeacher.Assign(Source: TPersistent);
 var
-  i: integer;
+  I: integer;
 begin
   if Source is TTeacher then
     with TTeacher(Source) do begin
@@ -1035,7 +1036,7 @@ begin
       self.FPlainSubjectX.Assign(SubjectX);
       self.FChecked := Checked;
       self.FLock := Lock;
-      for i := 0 to LessCount - 1 do
+      for I := 0 to LessCount - 1 do
         self.FCrossRef := FCrossRef;
     end
   else
@@ -1048,12 +1049,12 @@ end;
 {private}
 function TKlasses.GetFullKlassName(x: integer): string;
 begin
-  result := '';
+  Result := '';
   if (x < 0) or (x > MaxInd) then
     Exit;
   if FormatString = '' then
     Result := item[x].Name;
-  result := format(FormatString, [item[x].Name]);
+  Result := format(FormatString, [item[x].Name]);
 end;
 
 function TKlasses.GetItem(x: integer): TKlass;
@@ -1061,17 +1062,17 @@ begin
  // Класс
  ////////////////////////////////////////
  // Текст процедуры изменению не подлежит
-  result := TKlass(inherited GetItem(x));
+  Result := TKlass(inherited GetItem(x));
 end;
 
-procedure TKlasses.SetAsJSonObject(const Value: ISuperObject);
+procedure TKlasses.SetAsJsonObject(const Value: ISuperObject);
 var
   I: integer;
   supKlasses: TSuperArray;
   supKlass: ISuperObject;
   Klass: TKlass;
 begin
-  Clear(true);
+  Clear(True);
   FormatString:=Value.S['FormatString'];
   supKlasses:=Value.A['Items'];
   for I := 0 to supKlasses.Length - 1 do begin
@@ -1122,33 +1123,33 @@ end;
 
 function TKlasses.IndexOf(Name: string): integer;
 var
-  i: integer;
+  I: integer;
 begin
  // Найти класс по названию
  ////////////////////////////////////////
  // Текст процедуры изменению не подлежит
-  result := -1;
-  for i := 0 to MaxInd do
-    if SameText(Item[i].Name, Name) then begin
-      result := i;
+  Result := -1;
+  for I := 0 to MaxInd do
+    if SameText(Item[I].Name, Name) then begin
+      Result := I;
       Exit;
     end;
 end;
 
 function TKlasses.Lines(short: boolean): TStrings;
 var
-  i: integer;
+  I: integer;
 begin
   sts.Clear;
-  for i := 0 to MaxInd do
+  for I := 0 to MaxInd do
     if short then
-      sts.AddObject(Item[i].Name, fItem[i])
+      sts.AddObject(Item[I].Name, fItem[I])
     else
-      sts.AddObject(FullKlassName[i], fItem[i]);
-  result := sts;
+      sts.AddObject(FullKlassName[I], fItem[I]);
+  Result := sts;
 end;
 
-function TKlasses.GetAsJSonObject: ISuperObject;
+function TKlasses.GetAsJsonObject: ISuperObject;
 var
   I: integer;
   supKlasses: TSuperArray;
@@ -1171,13 +1172,13 @@ end;
 procedure TKlasses.Assign(Source: TPersistent);
 var
   Klasses: TKlasses;
-  i: integer;
+  I: integer;
 begin
   Clear(false);
   if Source is TKlasses then begin
     Klasses := TKlasses(Source);
-    for i := 0 to Klasses.Count - 1 do
-      Add(Klasses[i]);
+    for I := 0 to Klasses.Count - 1 do
+      Add(Klasses[I]);
   end
   else
     inherited;
@@ -1189,10 +1190,10 @@ end;
 {private}
 function TKabinets.GetItem(x: integer): TKabinet;
 begin
-  result := TKabinet(inherited GetItem(x));
+  Result := TKabinet(inherited GetItem(x));
 end;
 
-procedure TKabinets.SetAsJSonObject(const Value: ISuperObject);
+procedure TKabinets.SetAsJsonObject(const Value: ISuperObject);
 var
   I: integer;
   supKabinets: TSuperArray;
@@ -1248,31 +1249,31 @@ end;
 
 function TKabinets.IndexOf(Num: integer): integer;
 var
-  i: integer;
+  I: integer;
 begin
  // Найти кабинет по его коридорному номеру
-  result := -1;
-  for i := 0 to MaxInd do
-    if Item[i].Num = Num then begin
-      result := i;
+  Result := -1;
+  for I := 0 to MaxInd do
+    if Item[I].Num = Num then begin
+      Result := I;
       Exit;
     end;
 end;
 
 function TKabinets.Lines(Short: boolean): TStrings;
 var
-  i: integer;
+  I: integer;
 begin
   sts.Clear;
-  for i := 0 to MaxInd do
+  for I := 0 to MaxInd do
     if short then
-      sts.AddObject(Item[i].Name, fItem[i])
+      sts.AddObject(Item[I].Name, fItem[I])
     else
-      sts.AddObject(Item[i].FullName, fItem[i]);
-  result := sts;
+      sts.AddObject(Item[I].FullName, fItem[I]);
+  Result := sts;
 end;
 
-function TKabinets.GetAsJSonObject: ISuperObject;
+function TKabinets.GetAsJsonObject: ISuperObject;
 var
   I: integer;
   supKabinets: TSuperArray;
@@ -1296,13 +1297,13 @@ end;
 procedure TKabinets.Assign(Source: TPersistent);
 var
   kabs: TKabinets;
-  i: integer;
+  I: integer;
 begin
   Clear(false);
   if Source is TKabinets then begin
     Kabs := TKabinets(Source);
-    for i := 0 to Kabs.Count - 1 do
-      Add(Kabs[i]);
+    for I := 0 to Kabs.Count - 1 do
+      Add(Kabs[I]);
   end
   else
     inherited;
@@ -1330,10 +1331,10 @@ end;
 function TTeachers.GetItem(x: integer): TTeacher;
 begin
  // Преподаватель
-  result := TTeacher(inherited Item[x]);
+  Result := TTeacher(inherited Item[x]);
 end;
 
-procedure TTeachers.SetAsJSonObject(const Value: ISuperObject);
+procedure TTeachers.SetAsJsonObject(const Value: ISuperObject);
 var
   I: integer;
   supTeachers: TSuperArray;
@@ -1379,31 +1380,31 @@ end;
 
 function TTeachers.IndexOf(Name: string): integer;
 var
-  i: integer;
+  I: integer;
 begin
  // Найти преподавателя по ФИО
-  result := -1;
-  for i := 0 to MaxInd do
-    if SameText(Item[i].name, Name) then begin
-      result := i;
+  Result := -1;
+  for I := 0 to MaxInd do
+    if SameText(Item[I].name, Name) then begin
+      Result := I;
       Exit;
     end;
 end;
 
 function TTeachers.Lines(Short: boolean): TStrings;
 var
-  i: integer;
+  I: integer;
 begin
   sts.Clear;
-  for i := 0 to MaxInd do
+  for I := 0 to MaxInd do
     if short then
-      sts.AddObject(Item[i].ShortName, fItem[i])
+      sts.AddObject(Item[I].ShortName, fItem[I])
     else
-      sts.AddObject(Item[i].Name, fItem[i]);
-  result := sts;
+      sts.AddObject(Item[I].Name, fItem[I]);
+  Result := sts;
 end;
 
-function TTeachers.GetAsJSonObject: ISuperObject;
+function TTeachers.GetAsJsonObject: ISuperObject;
 var
   I: integer;
   supTeachers: TSuperArray;
@@ -1427,13 +1428,13 @@ end;
 procedure TTeachers.Assign(Source: TPersistent);
 var
   Teachers: TTeachers;
-  i: integer;
+  I: integer;
 begin
   Clear(false);
   if Source is TTeachers then begin
     Teachers := TTeachers(Source);
-    for i := 0 to Teachers.Count - 1 do
-      Add(Teachers[i]);
+    for I := 0 to Teachers.Count - 1 do
+      Add(Teachers[I]);
   end
   else
     inherited;
@@ -1445,56 +1446,56 @@ end;
 
 function TSubject.GetCross: TCross;
 var
-  i: integer;
+  I: integer;
 begin
  //////////////////////////////////////////////////
  // Текст процедуры изменению не подлежит
-  result := [];
-  for i := 0 to MaxInd do begin
-    if FTeachers[i] <> nil then
-      result := result + FTeachers[i].Cross;
-    if FKabinets[i] <> nil then
-      result := result + FKabinets[i].Cross;
+  Result := [];
+  for I := 0 to MaxInd do begin
+    if FTeachers[I] <> nil then
+      Result := Result + FTeachers[I].Cross;
+    if FKabinets[I] <> nil then
+      Result := Result + FKabinets[I].Cross;
   end;
 end;
 
 function TSubject.GetInfo: string;
 var
   st, s: string;
-  i: integer;
+  I: integer;
 begin
  // Получить информацию о предмете в виде одной строки
-  result := '';
+  Result := '';
   st := 'Пустая клетка';
   if MaxInd > -1 then begin
     st := Klass.Name + ': ' + LongName + '  ||  ';
     st := st + ObrTime(FLessonAtWeek) + '  ||   ' + tuSt[Complexion] + '  ||   ';
     s := '';
-    for i := 0 to TeacherCount - 1 do begin
+    for I := 0 to TeacherCount - 1 do begin
       if s > '' then
         s := s + ', ';
-      if FTeachers[i] <> nil then
-        s := s + FTeachers[i].Name;
+      if FTeachers[I] <> nil then
+        s := s + FTeachers[I].Name;
     end;
     st := st + s;
     s := '';
-    for i := 0 to TeacherCount - 1 do begin
+    for I := 0 to TeacherCount - 1 do begin
       if s > '' then
         s := s + ', ';
-      if FKabinets[i] <> nil then
-        s := s + FKabinets[i].Name;
+      if FKabinets[I] <> nil then
+        s := s + FKabinets[I].Name;
     end;
     if s > '' then
       s := '  ||   каб.:' + s;
     st := st + s;
   end;
-  result := st;
+  Result := st;
 end;
 
 function TSubject.GetKabinets(x: integer): TKabinet;
 begin
  // Список предметов в которых проводится урок
-  result := nil;
+  Result := nil;
   if (x < 0) or (x > MaxInd) or (x >= Length(FKabinets)) then
     Exit;
   Result := FKabinets[x];
@@ -1502,42 +1503,42 @@ end;
 
 function TSubject.GetKlassTitle(tc: TTableContent): string;
 begin
-  result := Klass.Name + ': ' + Title[tc];
+  Result := Klass.Name + ': ' + Title[tc];
 end;
 
 function TSubject.GetLongKlassName: string;
 begin
-  result := Klass.Name + ': ' + LongName;
+  Result := Klass.Name + ': ' + LongName;
 end;
 
 function TSubject.GetLongName: string;
 begin
-  result := '';
+  Result := '';
   if FNames = nil then
     Exit;
   if (FNameIndex < 0) or (FNameIndex > FNames.Count - 1) then
     Exit;
-  result := FNames.LongName[FNameIndex];
+  Result := FNames.LongName[FNameIndex];
 end;
 
 function TSubject.GetSanPIN: integer;
 begin
-  result := 0;
+  Result := 0;
   if FNames = nil then
     Exit;
   if (FNameIndex < 0) or (FNameIndex > FNames.Count - 1) then
     Exit;
-  result := FNames.SanPIN[FNameIndex];
+  Result := FNames.SanPIN[FNameIndex];
 end;
 
 function TSubject.GetShortName: string;
 begin
-  result := '';
+  Result := '';
   if FNames = nil then
     Exit;
   if (FNameIndex < 0) or (FNameIndex > FNames.Count - 1) then
     Exit;
-  result := FNames.ShortName[FNameIndex];
+  Result := FNames.ShortName[FNameIndex];
 end;
 
 function TSubject.GetState(Lesson: Integer): TSubjState;
@@ -1562,13 +1563,13 @@ end;
 function TSubject.GetTeacherCount: integer;
 begin
  // Каунт
-  result := MaxInd + 1;
+  Result := MaxInd + 1;
 end;
 
 function TSubject.GetTeachers(x: integer): TTeacher;
 begin
  // Список учителей которые проводят урок
-  result := nil;
+  Result := nil;
   if (x < 0) or (x > MaxInd) or (x >= Length(FTeachers)) then
     Exit;
   Result := FTeachers[x];
@@ -1576,7 +1577,7 @@ end;
 
 function TSubject.GetTitle(tc: TTableContent): string;
 var
-  i: integer;
+  I: integer;
   st: string;
   sts: TStringList;
 begin
@@ -1589,10 +1590,10 @@ begin
     begin
       sts := TStringList.Create;
       sts.Duplicates := dupIgnore;
-      sts.Sorted := true;
-      for i := 0 to TeacherCount - 1 do
-        if Kabinets[i].ShowNum then
-          sts.Add(IntToStr(Kabinets[i].Num));
+      sts.Sorted := True;
+      for I := 0 to TeacherCount - 1 do
+        if Kabinets[I].ShowNum then
+          sts.Add(IntToStr(Kabinets[I].Num));
       if st <> '' then
         st := st + ')';
       st := sts.CommaText;
@@ -1602,24 +1603,24 @@ begin
       st := ShortName + st;
     end;
     tcTeacher:
-      for i := 0 to TeacherCount - 1 do begin
-        if i > 0 then
+      for I := 0 to TeacherCount - 1 do begin
+        if I > 0 then
           st := st + #13#10;
-        st := st + Teachers[i].ShortName;
+        st := st + Teachers[I].ShortName;
       end;
     tcKabinet:
-      for i := 0 to TeacherCount - 1 do begin
-        if i > 0 then
+      for I := 0 to TeacherCount - 1 do begin
+        if I > 0 then
           st := st + #13#10;
-        st := st + Kabinets[i].FullName;
+        st := st + Kabinets[I].FullName;
       end;
   end;
-  result := st;
+  Result := st;
 end;
 
 function TSubject.GetVisible: boolean;
 begin
-  result := true;
+  Result := True;
 end;
 
 function TSubject.ObrTime(t: integer): string;
@@ -1641,7 +1642,7 @@ begin
     5..10:
       st := 'ов';
   end;
-  result := IntToStr(t) + ' час' + st;
+  Result := IntToStr(t) + ' час' + st;
 end;
 
 procedure TSubject.incCount;
@@ -1722,13 +1723,13 @@ end;
 
 procedure TSubject.SetIndex(const Value: integer);
 var
-  i: integer;
+  I: integer;
 begin
   inherited;
   Klass := Klass;
-  for i := 0 to TeacherCount - 1 do begin
-    Teachers[i] := Teachers[i];
-    Kabinets[i] := Kabinets[i];
+  for I := 0 to TeacherCount - 1 do begin
+    Teachers[I] := Teachers[I];
+    Kabinets[I] := Kabinets[I];
   end;
 end;
 
@@ -1760,13 +1761,13 @@ end;
 
 procedure TSubject.Assign(Source: TPersistent);
 var
-  i: integer;
+  I: integer;
 begin
   if Source is TSubject then
     with TSubject(Source) do begin
       self.Clear;
-      for i := 0 to TeacherCount - 1 do
-        self.Add(Teachers[i], Kabinets[i]);
+      for I := 0 to TeacherCount - 1 do
+        self.Add(Teachers[I], Kabinets[I]);
       self.Klass := Klass;
       self.LessonAtWeek := LessonAtWeek;
       self.Complexion := Complexion;
@@ -1779,12 +1780,12 @@ end;
 
 procedure TSubject.Clear;
 var
-  i, l: integer;
+  I, l: integer;
 begin
   l := Length(FTeachers);
-  for i := 0 to l - 1 do begin
-    Teachers[i] := nil;
-    Kabinets[i] := nil;
+  for I := 0 to l - 1 do begin
+    Teachers[I] := nil;
+    Kabinets[I] := nil;
   end;
   SetLength(FTeachers, 0);
   SetLength(FKabinets, 0);
@@ -1797,7 +1798,7 @@ end;
 
 procedure TSubject.Delete(x: integer);
 var
-  i: integer;
+  I: integer;
 begin
  // Удаление кабинета и преподавателя из списка
  //////////////////////////////////////////////////
@@ -1806,9 +1807,9 @@ begin
     Exit;
   Teachers[x] := nil;
   Kabinets[x] := nil;
-  for i := x to MaxInd - 1 do begin
-    FTeachers[i] := FTeachers[i + 1];
-    FKabinets[i] := FKabinets[i + 1];
+  for I := x to MaxInd - 1 do begin
+    FTeachers[I] := FTeachers[I + 1];
+    FKabinets[I] := FKabinets[I + 1];
   end;
   SetLength(FTeachers, MaxInd);
   SetLength(FKabinets, MaxInd);
@@ -1821,7 +1822,7 @@ end;
 {private}
 function TPlainSubjects.GetItem(x: integer): TSubject;
 begin
-  result := TSubject(inherited GetItem(x));
+  Result := TSubject(inherited GetItem(x));
 end;
 
 procedure TPlainSubjects.SetItem(x: integer; const Value: TSubject);
@@ -1845,13 +1846,13 @@ end;
 procedure TPlainSubjects.Assign(Source: TPersistent);
 var
   Subs: TPlainSubjects;
-  i: integer;
+  I: integer;
 begin
   Clear(false);
   if Source is TPlainSubjects then begin
     Subs := TPlainSubjects(Source);
-    for i := 0 to Subs.Count - 1 do
-      Add(Subs[i]);
+    for I := 0 to Subs.Count - 1 do
+      Add(Subs[I]);
   end
   else
     inherited;
@@ -1864,7 +1865,7 @@ end;
 function TTimeTable.GetForKabinet(KabinetIndex,
   LessonIndex: integer): TSubs;
 var
-  i, j, n: integer;
+  I, j, n: integer;
   subj: TSubject;
 begin
   /// 20-04-2012
@@ -1874,8 +1875,8 @@ begin
 
   n := 0;
   ClearSubjs;
-  for i := 0 to Klasses.Count - 1 do begin
-    Subj := Klasses[i].LessAbs[LessonIndex];
+  for I := 0 to Klasses.Count - 1 do begin
+    Subj := Klasses[I].LessAbs[LessonIndex];
     if Subj = nil then
       Continue;
     for j := 0 to subj.TeacherCount - 1 do
@@ -1886,20 +1887,20 @@ begin
         inc(n);
       end;
   end;
-  result := Subjs;
+  Result := Subjs;
 end;
 
 function TTimeTable.GetForTeacher(TeacherIndex,
   LessonIndex: integer): TSubs;
 var
-  i, j, n: integer;
+  I, j, n: integer;
   subj: TSubject;
 begin
   /// См. описание к GetForKabinet
   n := 0;
   ClearSubjs;
-  for i := 0 to Klasses.Count - 1 do begin
-    Subj := Klasses[i].LessAbs[LessonIndex];
+  for I := 0 to Klasses.Count - 1 do begin
+    Subj := Klasses[I].LessAbs[LessonIndex];
     if Subj = nil then
       Continue;
     for j := 0 to subj.TeacherCount - 1 do
@@ -1910,14 +1911,14 @@ begin
         inc(n);
       end;
   end;
-  result := Subjs;
+  Result := Subjs;
 end;
 
-function TTimeTable.GetItems(KlassIndex, LessonIndex: integer): TSubject;
+function TTimeTable.GetForKlasses(KlassIndex, LessonIndex: integer): TSubject;
 var
   Klass: TKlass;
 begin
-  result := nil;
+  Result := nil;
   if Subjects = nil then
     Exit;
   if (LessonIndex < 0) or (LessonIndex > LessCount - 1) then
@@ -1937,7 +1938,7 @@ end;
 
 procedure TTimeTable.Add2(LessonIndex: integer; Subject: TSubject);
 var
-  i, ki: integer;
+  I, KlassIndex: integer;
 begin
  // Выйти при отсутствии списка предметов
   if Subjects = nil then
@@ -1956,25 +1957,25 @@ begin
   // Отметить номер урока как занятый
     Klass.Cross := Klass.Cross + [LessonIndex];
   // Запомнить номер класса
-    ki := Klass.ItemIndex;
+    KlassIndex := Klass.ItemIndex;
   // Запомнить номер класса в числе других для данного урока
-    TimeTableX.Klasses[LessonIndex].Add(ki);
+    TimeTableX.Klasses[LessonIndex].Add(KlassIndex);
   // Проделать то же самое данных Учителей и Кабинетов
-    for i := 0 to TeacherCount - 1 do begin
-      Teachers[i].TimeTableX.Klasses[LessonIndex].Add(ki);
-      Teachers[i].IncCross(LessonIndex);
-      Kabinets[i].TimeTableX.Klasses[LessonIndex].Add(ki);
-      Kabinets[i].IncCross(LessonIndex);
+    for I := 0 to TeacherCount - 1 do begin
+      Teachers[I].TimeTableX.Klasses[LessonIndex].Add(KlassIndex);
+      Teachers[I].IncCross(LessonIndex);
+      Kabinets[I].TimeTableX.Klasses[LessonIndex].Add(KlassIndex);
+      Kabinets[I].IncCross(LessonIndex);
     end;
   end;
 end;
 
 procedure TTimeTable.ClearSubjs;
 var
-  i: integer;
+  I: integer;
 begin
-  for i := 0 to High(Subjs) do
-    Subjs[i].Free;
+  for I := 0 to High(Subjs) do
+    Subjs[I].Free;
   SetLength(Subjs, 0);
 end;
 
@@ -1987,7 +1988,7 @@ end;
 constructor TTimeTable.Create;
 begin
   SetLength(Subjs, 0);
-  FLessons := TPlainSubjects.Create(true);
+  FLessons := TPlainSubjects.Create(True);
 end;
 
 destructor TTimeTable.Destroy;
@@ -1999,7 +2000,7 @@ end;
 
 procedure TTimeTable.Add(LessonIndex: integer; Subject: TSubject);
 var
-  i, KlassIndex: integer;
+  I, KlassIndex: integer;
   Subj:TSubject;
 begin
  // Выйти при отсутствии списка предметов
@@ -2026,11 +2027,11 @@ begin
   // Запомнить номер класса в числе других для данного урока
     Subject.TimeTableX.Klasses[LessonIndex].Add(KlassIndex);
   // Проделать то же самое данных Учителей и Кабинетов
-    for i := 0 to Subject.TeacherCount - 1 do begin
-      Subject.Teachers[i].TimeTableX.Klasses[LessonIndex].Add(KlassIndex);
-      Subject.Teachers[i].IncCross(LessonIndex);
-      Subject.Kabinets[i].TimeTableX.Klasses[LessonIndex].Add(KlassIndex);
-      Subject.Kabinets[i].IncCross(LessonIndex);
+    for I := 0 to Subject.TeacherCount - 1 do begin
+      Subject.Teachers[I].TimeTableX.Klasses[LessonIndex].Add(KlassIndex);
+      Subject.Teachers[I].IncCross(LessonIndex);
+      Subject.Kabinets[I].TimeTableX.Klasses[LessonIndex].Add(KlassIndex);
+      Subject.Kabinets[I].IncCross(LessonIndex);
     end;
     Subj := TSubject.Create(Subject.FNames);
     Subj.Assign(Subject);
@@ -2041,10 +2042,10 @@ end;
 
 procedure TTimeTable.Delete(LessonIndex: integer; Kabinet: TKabinet);
 var
-  i: integer;
+  I: integer;
 begin
-  for i := 0 to Kabinet.TimeTableX[LessonIndex].Count - 1 do
-    Delete(LessonIndex, Klasses[Kabinet.TimeTableX[LessonIndex][i]]);
+  for I := 0 to Kabinet.TimeTableX[LessonIndex].Count - 1 do
+    Delete(LessonIndex, Klasses[Kabinet.TimeTableX[LessonIndex][I]]);
 end;
 
 procedure TTimeTable.Delete(LessonIndex: integer; Klass: TKlass);
@@ -2075,16 +2076,16 @@ begin
       Kabinets[I].TimeTableX.Klasses[LessonIndex].Delete(KlassIndex);
       Kabinets[I].DecCross(LessonIndex);
     end;
-    Lessons.Delete(Lesson,true);
+    Lessons.Delete(Lesson,True);
   end;
 end;
 
 procedure TTimeTable.Delete(LessonIndex: integer; Teacher: TTeacher);
 var
-  i: integer;
+  I: integer;
 begin
-  for i := 0 to Teacher.TimeTableX[LessonIndex].Count - 1 do
-    Delete(LessonIndex, Klasses[Teacher.TimeTableX[LessonIndex][i]]);
+  for I := 0 to Teacher.TimeTableX[LessonIndex].Count - 1 do
+    Delete(LessonIndex, Klasses[Teacher.TimeTableX[LessonIndex][I]]);
 end;
 
 procedure TTimeTable.Delete2(LessonIndex: integer; Klass: TKlass);
@@ -2094,36 +2095,36 @@ end;
 
 procedure TTimeTable.Delete2(LessonIndex: integer; Kabinet: TKabinet);
 var
-  i: integer;
+  I: integer;
 begin
-  for i := 0 to Kabinet.TimeTableX[LessonIndex].Count - 1 do
-    Delete(LessonIndex, Klasses[Kabinet.TimeTableX[LessonIndex][i]]);
+  for I := 0 to Kabinet.TimeTableX[LessonIndex].Count - 1 do
+    Delete(LessonIndex, Klasses[Kabinet.TimeTableX[LessonIndex][I]]);
 end;
 
 procedure TTimeTable.Delete2(LessonIndex: integer; Teacher: TTeacher);
 var
-  i: integer;
+  I: integer;
 begin
-  for i := 0 to Teacher.TimeTableX[LessonIndex].Count - 1 do
-    Delete(LessonIndex, Klasses[Teacher.TimeTableX[LessonIndex][i]]);
+  for I := 0 to Teacher.TimeTableX[LessonIndex].Count - 1 do
+    Delete(LessonIndex, Klasses[Teacher.TimeTableX[LessonIndex][I]]);
 end;
 
 procedure TTimeTable.Delete2(LessonIndex: integer; Subject: TSubject);
 var
-  i, ki: integer;
+  I, KlassIndex: integer;
 begin
   if Subject = nil then
     Exit;
   with Subject do begin
     if Klass = nil then
       Exit;
-    ki := Klass.ItemIndex;
+    KlassIndex := Klass.ItemIndex;
     InTimeTable := InTimeTable - 1;
-    for i := 0 to TeacherCount - 1 do begin
-      Teachers[i].TimeTableX.Klasses[LessonIndex].Delete(ki);
-      Teachers[i].DecCross(LessonIndex);
-      Kabinets[i].TimeTableX.Klasses[LessonIndex].Delete(ki);
-      Kabinets[i].DecCross(LessonIndex);
+    for I := 0 to TeacherCount - 1 do begin
+      Teachers[I].TimeTableX.Klasses[LessonIndex].Delete(KlassIndex);
+      Teachers[I].DecCross(LessonIndex);
+      Kabinets[I].TimeTableX.Klasses[LessonIndex].Delete(KlassIndex);
+      Kabinets[I].DecCross(LessonIndex);
     end;
     Klass.LessAbs[LessonIndex] := nil;
   end;
@@ -2138,13 +2139,13 @@ begin
  // Выдать предмет из списка
  //////////////////////////////////////////////////
  // Текст процедуры изменению не подлежит
-  result := GetItem(x) as TSubject;
+  Result := GetItem(x) as TSubject;
 end;
 
 function TSubjects.LoadKabinets(sr: TStream): boolean;
 var
   ms: TMemoryStream;
-  i, n, p: integer;
+  I, n, p: integer;
   xr: TCross;
   b: Boolean;
   Key: string;
@@ -2153,14 +2154,14 @@ begin
   ms := TMemoryStream.create;
   p := sr.Position;
   Load(sr, Key, TStream(ms));
-  result := Key = 'Кабинеты';
+  Result := Key = 'Кабинеты';
   if not Result then begin
     sr.Position := p;
     ms.Free;
     Exit;
   end;
   ms.Read(n, 4);
-  for i := 1 to n do begin
+  for I := 1 to n do begin
     Kabinet := TKabinet.Create;
     with Kabinet do begin
       name := ReadString(ms);
@@ -2181,7 +2182,7 @@ end;
 function TSubjects.LoadKlasses(sr: TStream): boolean;
 var
   ms: TMemoryStream;
-  i, p, n: integer;
+  I, p, n: integer;
   xr: TCross;
   b: Boolean;
   Klass: TKlass;
@@ -2190,7 +2191,7 @@ begin
   ms := TMemoryStream.create;
   p := sr.Position;
   Load(sr, Key, TStream(ms));
-  result := Key = 'Классы';
+  Result := Key = 'Классы';
   if not Result then begin
     sr.Position := p;
     ms.Free;
@@ -2198,7 +2199,7 @@ begin
   end;
   Klasses.FormatString := ReadString(ms);
   ms.Read(n, 4);
-  for i := 1 to n do begin
+  for I := 1 to n do begin
     Klass := TKlass.Create;
     with Klass do begin
       Name := ReadString(ms);
@@ -2221,7 +2222,7 @@ begin
   ms := tMemoryStream.Create;
   Load(sr, Key, TStream(ms));
   p := sr.Position;
-  result := Key = 'Названия предметов';
+  Result := Key = 'Названия предметов';
   if not Result then begin
     sr.Position := p;
     ms.Free;
@@ -2233,7 +2234,7 @@ end;
 
 function TSubjects.LoadSubjects(sr: TStream): boolean;
 var
-  i, j, n, bs, xs: integer;
+  I, j, n, bs, xs: integer;
  //xset:integer;
   ms: TMemoryStream;
   Key: string;
@@ -2247,7 +2248,7 @@ begin
   ms := TMemoryStream.Create;
   p := sr.Position;
   Load(sr, Key, TStream(ms));
-  result := Key = 'Предметы';
+  Result := Key = 'Предметы';
   if not Result then begin
     sr.Position := p;
     ms.Free;
@@ -2261,7 +2262,7 @@ begin
     Read(FLessons, xs);
     Read(FFullView, bs);
     Read(n, 4);
-    for i := 1 to n do begin
+    for I := 1 to n do begin
       Subject := TSubject.Create(FSubjectNames);
       with Subject do begin
         Read(n, 4);
@@ -2290,7 +2291,7 @@ end;
 function TSubjects.LoadTeachers(sr: TStream): boolean;
 var
   ms: TMemoryStream;
-  i, p, n: integer;
+  I, p, n: integer;
   xr: TCross;
   b: Boolean;
   Teacher: TTeacher;
@@ -2299,14 +2300,14 @@ begin
   ms := TMemoryStream.create;
   p := sr.Position;
   Load(sr, Key, TStream(ms));
-  result := Key = 'Учителя';
+  Result := Key = 'Учителя';
   if not Result then begin
     sr.Position := p;
     ms.Free;
     Exit;
   end;
   ms.Read(n, 4);
-  for i := 1 to n do begin
+  for I := 1 to n do begin
     Teacher := TTeacher.Create;
     with Teacher do begin
       Name := ReadString(ms);
@@ -2324,22 +2325,22 @@ end;
 
 function TSubjects.LoadTimeTable(sr: TStream): boolean;
 begin
-  result := 1 = 1;
+  Result := 1 = 1;
 end;
 
 procedure TSubjects.SaveKabinets(sr: TStream);
 var
   ms: TMemoryStream;
-  i, n: integer;
+  I, n: integer;
   xr: TCross;
   b: Boolean;
 begin
   ms := TMemoryStream.create;
   with Kabinets do begin
-    i := Count - 1;
-    ms.Write(i, 4);
-    for i := 1 to Count - 1 do
-      with Item[i] do begin
+    I := Count - 1;
+    ms.Write(I, 4);
+    for I := 1 to Count - 1 do
+      with Item[I] do begin
         WriteString(ms, Name);
         n := Num;
         ms.Write(n, 4);
@@ -2358,20 +2359,20 @@ end;
 procedure TSubjects.SaveKlasses(sr: TStream);
 var
   ms: TMemoryStream;
-  i: integer;
+  I: integer;
   xr: TCross;
   b: Boolean;
 begin
   ms := TMemoryStream.create;
   with Klasses do begin
     WriteString(ms, FormatString);
-    i := Count;
-    ms.Write(i, 4);
-    for i := 0 to Count - 1 do begin
-      WriteString(ms, Item[i].Name);
-      xr := Item[i].Lock;
+    I := Count;
+    ms.Write(I, 4);
+    for I := 0 to Count - 1 do begin
+      WriteString(ms, Item[I].Name);
+      xr := Item[I].Lock;
       ms.Write(xr, SizeOf(xr));
-      b := Item[i].Checked;
+      b := Item[I].Checked;
       ms.Write(b, 1);
     end;
   end;
@@ -2391,7 +2392,7 @@ end;
 
 procedure TSubjects.SaveSubjects(sr: TStream);
 var
-  i, j, n, bs, xs: integer;
+  I, j, n, bs, xs: integer;
   ms: TMemoryStream;
 begin
   bs := SizeOf(boolean);
@@ -2406,8 +2407,8 @@ begin
     Write(FFullView, bs);
     n := Count;
     Write(n, 4);
-    for i := 0 to MaxInd do
-      with Item[i] do begin
+    for I := 0 to MaxInd do
+      with Item[I] do begin
         if Klass = nil then
           n := -1
         else
@@ -2441,16 +2442,16 @@ end;
 procedure TSubjects.SaveTeachers(sr: TStream);
 var
   ms: TMemoryStream;
-  i, n: integer;
+  I, n: integer;
   xr: TCross;
   b: Boolean;
 begin
   ms := TMemoryStream.create;
   with Teachers do begin
-    i := Count;
-    ms.Write(i, 4);
-    for i := 0 to Count - 1 do
-      with Item[i] do begin
+    I := Count;
+    ms.Write(I, 4);
+    for I := 0 to Count - 1 do
+      with Item[I] do begin
         WriteString(ms, Name);
         n := KabNum;
         ms.Write(n, 4);
@@ -2469,7 +2470,7 @@ begin
 
 end;
 
-procedure TSubjects.SetAsJSonObject(const Value: ISuperObject);
+procedure TSubjects.SetAsJsonObject(const Value: ISuperObject);
 var
   I, J: integer;
   supSubjects: TSuperArray;
@@ -2481,10 +2482,10 @@ var
   Teacher:TTeacher;
 begin
   Clear;
-  Klasses.AsJSonObject:=Value.O['Klasses'];
-  Kabinets.AsJSonObject:=Value.O['Kabinets'];
-  Teachers.AsJSonObject:=Value.O['Teachers'];
-  SubjectNames.AsJSonObject:=Value.O['SubjectNames'];
+  Klasses.AsJsonObject:=Value.O['Klasses'];
+  Kabinets.AsJsonObject:=Value.O['Kabinets'];
+  Teachers.AsJsonObject:=Value.O['Teachers'];
+  SubjectNames.AsJsonObject:=Value.O['SubjectNames'];
   FViewMode:=TViewMode(Value.I['ViewMode']);
   FColumnMode:=TColumnMode(Value.I['ColumnMode']);
   FTableContent:=TTableContent(Value.I['TableContent']);
@@ -2525,14 +2526,14 @@ begin
  // Создание пустого списка предметов
  //////////////////////////////////////////////////
  // Текст процедуры изменению не подлежит
-  inherited Create(true);
-  FFullView := true;
+  inherited Create(True);
+  FFullView := True;
  // Выделение памяти
   FSubjectNames := TSubjNames.Create;
   FTimeTable := TTimeTable.Create;
-  FKabinets := TKabinets.Create(true);
-  FKlasses := TKlasses.Create(true);
-  FTeachers := TTeachers.Create(true);
+  FKabinets := TKabinets.Create(True);
+  FKlasses := TKlasses.Create(True);
+  FTeachers := TTeachers.Create(True);
  //
   FKlasses.FormatString := '%s класс';
   FTimeTable.Subjects := self;
@@ -2562,11 +2563,11 @@ begin
  // Установить пересечения по классу, преподавателям и кабинетам
  //////////////////////////////////////////////////
  // Текст процедуры изменению не подлежит
-  result := Subject.ItemIndex;
-  if result <> -1 then
-    if Item[result] = Subject then
+  Result := Subject.ItemIndex;
+  if Result <> -1 then
+    if Item[Result] = Subject then
       Exit;
-  result := inherited Add(Subject);
+  Result := inherited Add(Subject);
 end;
 
 function TSubjects.Add: TSubject;
@@ -2575,11 +2576,11 @@ begin
  // Все проверки и учёт пересечений делаются потом.
  //////////////////////////////////////////////////
  // Текст процедуры изменению не подлежит
-  result := TSubject.Create(fSubjectNames);
-  Add(result);
+  Result := TSubject.Create(fSubjectNames);
+  Add(Result);
 end;
 
-function TSubjects.GetAsJSonObject: ISuperObject;
+function TSubjects.GetAsJsonObject: ISuperObject;
 var
   I, J, N: integer;
   supSubjects: TSuperArray;
@@ -2588,10 +2589,10 @@ var
   supTeachKab: ISuperObject;
 begin
   Result := SO;
-  Result.O['Klasses']:=Klasses.GetAsJSonObject;
-  Result.O['Kabinets']:=Kabinets.GetAsJSonObject;
-  Result.O['Teachers']:=Teachers.GetAsJSonObject;
-  Result.O['SubjectNames']:=SubjectNames.AsJSonObject;
+  Result.O['Klasses']:=Klasses.GetAsJsonObject;
+  Result.O['Kabinets']:=Kabinets.GetAsJsonObject;
+  Result.O['Teachers']:=Teachers.GetAsJsonObject;
+  Result.O['SubjectNames']:=SubjectNames.AsJsonObject;
   Result.S['ViewModeComment']:='0,1,2,3 = Предметы, заголовки, дни недели, номера уроков';
   Result.S['ColumnModeComment']:='0,1,2 = Классы, Учителя, Кабинеты';
   Result.S['TableContentComment']:='0,1,2 = Предметы, Учителя, Кабинеты';
@@ -2642,49 +2643,49 @@ end;
 
 function TSubjects.IsCross(subj1, subj2: TSubject): boolean;
 var
-  i, j: integer;
+  I, j: integer;
 begin
-  result := false;
+  Result := false;
   if (subj1 = nil) or (subj2 = nil) then
     Exit;
-  for i := 0 to subj1.TeacherCount - 1 do
+  for I := 0 to subj1.TeacherCount - 1 do
     for j := 0 to subj2.TeacherCount - 1 do begin
-      result := result or (subj1.Teachers[i] = subj2.Teachers[j]) or (subj1.Kabinets[i] = subj2.Kabinets[j]);
-      if result then
+      Result := Result or (subj1.Teachers[I] = subj2.Teachers[j]) or (subj1.Kabinets[I] = subj2.Kabinets[j]);
+      if Result then
         Exit;
     end;
 end;
 
 procedure TSubjects.Clear;
 begin
-  inherited Clear(true);
-  FKlasses.Clear(true);
-  FKabinets.Clear(true);
-  FTeachers.Clear(true);
+  inherited Clear(True);
+  FKlasses.Clear(True);
+  FKabinets.Clear(True);
+  FTeachers.Clear(True);
   FSubjectNames.Clear;
 end;
 
 procedure TSubjects.Delete(Subject: TSubject);
 var
-  i: integer;
+  I: integer;
 begin
   Subject.Klass := nil;
-  for i := 0 to Subject.TeacherCount - 1 do begin
-    Subject.Teachers[i] := nil;
-    Subject.Kabinets[i] := nil;
+  for I := 0 to Subject.TeacherCount - 1 do begin
+    Subject.Teachers[I] := nil;
+    Subject.Kabinets[I] := nil;
   end;
-  inherited Delete(Subject, true);
+  inherited Delete(Subject, True);
 end;
 
-procedure TSubjects.Delete(x: Integer);
+procedure TSubjects.Delete(Index: Integer);
 begin
  // Удалить все упоминания о предмете в других данных.
  // Удалить предмет из списка.
  //////////////////////////////////////////////////
  // Текст процедуры изменению не подлежит
-  if (x < 0) or (x > MaxInd) then
+  if (Index < 0) or (Index > MaxInd) then
     Exit;
-  Delete(item[x]);
+  Delete(item[Index]);
 end;
 
 procedure TSubjects.Load(srBig: TStream; var Key: string;
@@ -2701,18 +2702,18 @@ begin
   srSmall.Position := 0;
 end;
 
-procedure TSubjects.LoadFromFile(fn: string);
+procedure TSubjects.LoadFromFile(FN: string);
 var
   fs: TFileStream;
 begin
  // Загрузка данных из файла. В том числе преподаватели, кабинеты и классы
  // TODO 3: LoadFromFile (необходимо прочитать Current-данные)
-  if not FileExists(fn) then begin
+  if not FileExists(FN) then begin
     ShowMessage('Файл не существует');
     Exit;
   end;
   Clear;
-  fs := TFileStream.Create(fn, fmOpenRead);
+  fs := TFileStream.Create(FN, fmOpenRead);
   repeat
     if not LoadKlasses(fs) then begin
       ShowMessage('Ошибка загрузки классов');
@@ -2738,19 +2739,19 @@ begin
       ShowMessage('Ошибка загрузки расписания');
       break;
     end;
-  until true;
+  until True;
   fs.Free;
 end;
 
-procedure TSubjects.LoadFromTextFile(fn: string);
+procedure TSubjects.LoadFromTextFile(FN: string);
 var
   SupObj: ISuperObject;
   sts:TStringList;
 begin
   sts:=TStringList.Create;
-  sts.LoadFromFile(fn);
+  sts.LoadFromFile(FN);
   SupObj := SO(sts.Text);
-  AsJSonObject:= SupObj;
+  AsJsonObject:= SupObj;
   sts.Free;
 end;
 
@@ -2765,13 +2766,13 @@ begin
   srBig.CopyFrom(srSmall, l);
 end;
 
-procedure TSubjects.SaveToFile(fn: string);
+procedure TSubjects.SaveToFile(FN: string);
 var
   fs: TFileStream;
 begin
  // Запись абсолютно всех данных в файл
  // TODO 3: SaveToFile (необходимо сохранить Current-данные)
-  fs := TFileStream.Create(fn, fmCreate);
+  fs := TFileStream.Create(FN, fmCreate);
   SaveKlasses(fs);
   SaveKabinets(fs);
   SaveTeachers(fs);
@@ -2781,20 +2782,20 @@ begin
   fs.Free;
 end;
 
-procedure TSubjects.SaveToTextFile(fn: string);
+procedure TSubjects.SaveToTextFile(FN: string);
 begin
  // Запись абсолютно всех данных в файл
  // TODO 3: SaveToFile (необходимо сохранить Current-данные)
-  AsJSonObject.SaveTo(fn,true);
+  AsJsonObject.SaveTo(FN,True);
 end;
 ////////////////////// Вспомогательные функции //////////////////////
 function ToName(s: string): TName;
 begin
   with TStringList.Create do begin
     CommaText := s;
-    result.Long := strings[0];
-    result.Short := strings[1];
-    result.Pin := StrToInt(strings[2]);
+    Result.Long := strings[0];
+    Result.Short := strings[1];
+    Result.Pin := StrToInt(strings[2]);
     Free;
   end;
 end;
@@ -2805,7 +2806,7 @@ begin
     Add(Long);
     Add(Short);
     Add(IntToStr(Pin));
-    result := CommaText;
+    Result := CommaText;
     Free;
   end;
 end;
