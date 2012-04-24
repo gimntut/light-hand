@@ -65,8 +65,8 @@ type
   TSubjGrid = class (TCustomDrawGrid)
   private
     bmIcons: TBitmap;
-    btnFullView: TSpeedButton;
-    btnTC: TSpeedButton;
+    //btnFullView: TSpeedButton;
+    //btnTC: TSpeedButton;
     imgFullView: TImage;
     CellLayer: TBitMap;
     ComboBox: TComboBox;
@@ -152,7 +152,6 @@ type
     procedure RedrawFixed;
     procedure RedrawRow(ARow: Integer);
     procedure Refresh(Sender: TObject);
-    procedure TCClick(Sender: TObject);
     procedure TikTimer(Sender: TObject);
     procedure WMChar(var Msg: TWMChar); message WM_CHAR;
   /////////////////// Layers ///////////////////
@@ -407,12 +406,12 @@ var
 begin
  // Если произошёл выход за бока экранной сеткм - выход
   if (ACol < 0) or (ACol > ColCount - 1) then
-    Exit;
+    Exit;                                  
  // Если произошёл выход за верх-низ экранной сетки - выход
   if (ARow < 0) or (ARow > RowCount - 1) or (ARow > LessCount) then
     Exit;
  // Установка соотвествия ширина таблицы в памяти и на экране
-  if Length(fCells) <> ColCount then
+  if Length(fCells) <> ColCount then {}
     SetLength(fCells, ColCount);
   Lesson := RowToLesson(ARow) + 1;
  // Если в ячейке уже есть эти данные - выход
@@ -465,7 +464,8 @@ procedure TSubjGrid.SetFullView(const Value: Boolean);
 begin
   FFullView := Value;
   OutTimeTable;
-  BtnFullView.Down := Not Value and (ColCount > 2) and (RowCount > 2);
+  // BtnFullView.Down := Not Value and (ColCount > 2) and (RowCount > 2);
+  // todo: Нарисовать "кнопку"
   RedrawCell(Col, Row);
 end;
 
@@ -528,7 +528,7 @@ begin
   else
     x := -1;
   end;
-  FillIcon(btnTC.Glyph, x);
+  // FillIcon(btnTC.Glyph, x);
   FillIcon(imgFullView.Picture.Bitmap, x);
   OutTimeTable;
 end;
@@ -1019,6 +1019,7 @@ var
   sbj: TSubject;
   s: string;
 begin
+  // todo: Исправить вывод данных в сетку расписания
   n := 1;
   for i := 0 to SubjSource.Klasses.Count - 1 do
     if SubjSource.Klasses[i].Checked then
@@ -1190,12 +1191,6 @@ end;
 procedure TSubjGrid.Refresh(Sender: TObject);
 begin
   OutTimeTable;
-end;
-
-procedure TSubjGrid.TCClick(Sender: TObject);
-begin
-  with Mouse.CursorPos do
-    Popup.Popup(x, y);
 end;
 
 procedure TSubjGrid.TikTimer(Sender: TObject);
@@ -1707,10 +1702,10 @@ begin
     with ARect.TopLeft do
       Draw(x, y, CellLayer);
   end;
- // Перерисовать кнопки в сетке
+ // todo: Перерисовать "кнопки" в сетке
   if (ACol = 0) and (ARow = 0) then begin
-    btnTC.Invalidate;
-    btnFullView.Invalidate;
+    // btnTC.Invalidate;
+    // btnFullView.Invalidate;
   end;
 end;
 
@@ -1808,27 +1803,27 @@ begin
   end;
   Popup := TPopupMenu.Create(self);
   InitPopup;
-  btnTC := TSpeedButton.Create(self);
-  with btnTC do begin
-    FillIcon(Glyph, 0);
-    Flat := true;
-    BoundsRect := Rect(1, 0, 22, 21);
-    parent := Panel;
-    onClick := TCClick;
-    Visible := false;
-  end;
-  btnFullView := TSpeedButton.Create(self);
-  with btnFullView do begin
-    Flat := true;
-    BoundsRect := Rect(24, 0, 45, 21);
-    parent := Panel;
-    Glyph.LoadFromResourceName(HInstance, 'eye');
-    NumGlyphs := 4;
-    GroupIndex := 1;
-    AllowAllUp := true;
-    onClick := FullViewClick;
-    Visible := false;
-  end;
+//  btnTC := TSpeedButton.Create(self);
+//  with btnTC do begin
+//    FillIcon(Glyph, 0);
+//    Flat := true;
+//    BoundsRect := Rect(1, 0, 22, 21);
+//    parent := Panel;
+//    onClick := TCClick;
+//    Visible := false;
+//  end;
+//  btnFullView := TSpeedButton.Create(self);
+//  with btnFullView do begin
+//    Flat := true;
+//    BoundsRect := Rect(24, 0, 45, 21);
+//    parent := Panel;
+//    Glyph.LoadFromResourceName(HInstance, 'eye');
+//    NumGlyphs := 4;
+//    GroupIndex := 1;
+//    AllowAllUp := true;
+//    onClick := FullViewClick;
+//    Visible := false;
+//  end;
 
   imgFullView := TImage.Create(Self);
   imgFullView.BoundsRect := Rect(3, 3, 18, 18);
