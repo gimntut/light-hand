@@ -9,6 +9,10 @@
 //////////// СЛОВАРИК //////////////
 /// substitution - подмена
 
+///////////// Мысли вслух /////////////
+/// 24.04.2012: Надо переходить от TimeTable.Lessons:TSubjects к TimeTable.Lessons[LessonIndex]:TSubjects
+/// 24.04.2012: Нужно отказаться от LessAbs
+
 unit sbjKernel;
 
 interface
@@ -1875,9 +1879,11 @@ begin
 
   n := 0;
   ClearSubjs;
-  for I := 0 to Klasses.Count - 1 do begin
-    Subj := Klasses[I].LessAbs[LessonIndex];
+  for I := 0 to Lessons.Count - 1 do begin
+    Subj := Lessons[I];
     if Subj = nil then
+      Continue;
+    if Subj.LessonIndex <> LessonIndex then
       Continue;
     for j := 0 to subj.TeacherCount - 1 do
       if subj.Kabinets[j].ItemIndex = KabinetIndex then begin
@@ -1893,21 +1899,26 @@ end;
 function TTimeTable.GetForTeacher(TeacherIndex,
   LessonIndex: integer): TSubs;
 var
-  I, j, n: integer;
-  subj: TSubject;
+  I, J, n: integer;
+  Subj: TSubject;
 begin
   /// См. описание к GetForKabinet
+  ///  24.04.2012
+  ///  Процедура практически не изменилась
   n := 0;
   ClearSubjs;
-  for I := 0 to Klasses.Count - 1 do begin
-    Subj := Klasses[I].LessAbs[LessonIndex];
+  for I := 0 to Lessons.Count - 1 do
+  begin
+    Subj := Lessons[I];
     if Subj = nil then
       Continue;
-    for j := 0 to subj.TeacherCount - 1 do
-      if subj.Teachers[j].ItemIndex = TeacherIndex then begin
+    if Subj.LessonIndex <> LessonIndex then
+      Continue;
+    for j := 0 to Subj.TeacherCount - 1 do
+      if Subj.Teachers[j].ItemIndex = TeacherIndex then begin
         SetLength(Subjs, n + 1);
         Subjs[n] := TSubject.Create(FSubjects.SubjectNames);
-        Subjs[n].Assign(subj);
+        Subjs[n].Assign(Subj);
         inc(n);
       end;
   end;
@@ -1916,17 +1927,27 @@ end;
 
 function TTimeTable.GetForKlasses(KlassIndex, LessonIndex: integer): TSubject;
 var
-  Klass: TKlass;
+//  Klass: TKlass;
+  I: Integer;
 begin
+  /// 24.04.2012
+  ///  Будем решать задачу в лоб, т.е. простым перебором
+
   Result := nil;
   if Subjects = nil then
     Exit;
   if (LessonIndex < 0) or (LessonIndex > LessCount - 1) then
     Exit;
-  Klass := Subjects.Klasses[KlassIndex];
-  if Klass = nil then
-    Exit;
-  Result := Klass.LessAbs[LessonIndex];
+   for I := 0 to Lessons.Count - 1 do begin
+     if Lessons[I].Klass.ItemIndex<>KlassIndex then Continue;
+     if Lessons[I].LessonIndex<>LessonIndex then Continue;
+     Result:=Lessons[I];
+     break;
+   end;
+//  Klass := Subjects.Klasses[KlassIndex];
+//  if Klass = nil then
+//    Exit;
+//  Result := Klass.LessAbs[LessonIndex];
 end;
 
 function TTimeTable.GetKlasses: TKlasses;
