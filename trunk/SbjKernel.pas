@@ -159,23 +159,23 @@ type
   TKlass = class (TSimpleItem)
   private
     FKabinets: TKabinets;
-    FLesson: array[0..LessCount - 1] of TSubject;
+    //FLesson: array[0..LessCount - 1] of TSubject;
     FMaxSanPIN: Integer;
     FTeachers: TTeachers;
     FWDSanPIN: array[0..WDCount - 1] of Integer;
-    function GetLessAbs(LessonIndex: integer): TSubject;
-    function GetLesson(WeekDay, LessonNumber: integer): TSubject;
+//    function GetLessAbs(LessonIndex: integer): TSubject;
+//    function GetLesson(WeekDay, LessonNumber: integer): TSubject;
     function GetWDSanPIN(WD: Integer): Real;
     procedure FindMaxSanPIN;
-    procedure SetLessAbs(LessonIndex: integer; const Value: TSubject);
-    procedure SetLesson(WeekDay, LessonNumber: integer; const Value: TSubject);
+//    procedure SetLessAbs(LessonIndex: integer; const Value: TSubject);
+//    procedure SetLesson(WeekDay, LessonNumber: integer; const Value: TSubject);
   public
     constructor Create; override;
     destructor Destroy; override;
     procedure Assign(Source: TPersistent); override;
     property Kabinets: TKabinets read FKabinets;
-    property LessAbs[LessonIndex: integer]: TSubject read GetLessAbs write SetLessAbs;
-    property Lessons[WeekDay, LessonNumber: integer]: TSubject read GetLesson write SetLesson;
+//    property Lessons[WeekDay, LessonNumber: integer]: TSubject read GetLesson write SetLesson;
+//    property LessAbs[LessonIndex: integer]: TSubject read GetLessAbs write SetLessAbs;
     property Teachers: TTeachers read FTeachers;
     property WDSanPIN[WD: Integer]: Real read GetWDSanPIN;
   end;
@@ -427,8 +427,8 @@ type
   protected
     procedure Add2(LessonIndex: integer; Subject: TSubject);
     procedure Delete2(LessonIndex: integer; Kabinet: TKabinet); overload;
-    procedure Delete2(LessonIndex: integer; Klass: TKlass); overload;
-    procedure Delete2(LessonIndex: integer; Subject: TSubject); overload;
+//    procedure Delete2(LessonIndex: integer; Klass: TKlass); overload;
+//    procedure Delete2(LessonIndex: integer; Subject: TSubject); overload;
     procedure Delete2(LessonIndex: integer; Teacher: TTeacher); overload;
     property Klasses:TKlasses read GetKlasses;
   public
@@ -838,21 +838,21 @@ end;
                    { TKlass }
 //////////////////////////////////////////////////
 {private}
-function TKlass.GetLessAbs(LessonIndex: integer): TSubject;
-begin
-  Result := nil;
-  if (LessonIndex < 0) or (LessonIndex > LessCount - 1) then
-    Exit;
-  Result := FLesson[LessonIndex];
-end;
+//function TKlass.GetLessAbs(LessonIndex: integer): TSubject;
+//begin
+//  Result := nil;
+//  if (LessonIndex < 0) or (LessonIndex > LessCount - 1) then
+//    Exit;
+//  Result := FLesson[LessonIndex];
+//end;
 
-function TKlass.GetLesson(WeekDay, LessonNumber: integer): TSubject;
-var
-  x: integer;
-begin
-  x := WeekDay * 11 + LessonNumber;
-  Result := LessAbs[x];
-end;
+//function TKlass.GetLesson(WeekDay, LessonNumber: integer): TSubject;
+//var
+//  x: integer;
+//begin
+//  x := WeekDay * 11 + LessonNumber;
+//  Result := LessAbs[x];
+//end;
 
 function TKlass.GetWDSanPIN(WD: Integer): Real;
 begin
@@ -872,47 +872,47 @@ begin
       FMaxSanPIN := FWDSanPIN[I];
 end;
 
-procedure TKlass.SetLessAbs(LessonIndex: integer; const Value: TSubject);
-var
-  wd, sp: Integer;
-begin
-  if (LessonIndex < 0) or (LessonIndex > LessCount - 1) then
-    Exit;
-  wd := LessonIndex div 11;
-  if FLesson[LessonIndex] <> nil then begin
-    sp := FLesson[LessonIndex].SanPIN;
-    FWDSanPIN[wd] := FWDSanPIN[wd] - sp;
-  end;
-  FLesson[LessonIndex] := Value;
-  if Value <> nil then begin
-    sp := Value.SanPIN;
-    FWDSanPIN[wd] := FWDSanPIN[wd] + sp;
-  end;
-  if FMaxSanPIN < FWDSanPIN[wd] then
-    FMaxSanPIN := FWDSanPIN[wd]
-  else
-    FindMaxSanPIN;
-end;
+//procedure TKlass.SetLessAbs(LessonIndex: integer; const Value: TSubject);
+//var
+//  wd, sp: Integer;
+//begin
+//  if (LessonIndex < 0) or (LessonIndex > LessCount - 1) then
+//    Exit;
+//  wd := LessonIndex div 11;
+//  if FLesson[LessonIndex] <> nil then begin
+//    sp := FLesson[LessonIndex].SanPIN;
+//    FWDSanPIN[wd] := FWDSanPIN[wd] - sp;
+//  end;
+//  FLesson[LessonIndex] := Value;
+//  if Value <> nil then begin
+//    sp := Value.SanPIN;
+//    FWDSanPIN[wd] := FWDSanPIN[wd] + sp;
+//  end;
+//  if FMaxSanPIN < FWDSanPIN[wd] then
+//    FMaxSanPIN := FWDSanPIN[wd]
+//  else
+//    FindMaxSanPIN;
+//end;
 
-procedure TKlass.SetLesson(WeekDay, LessonNumber: integer;
-  const Value: TSubject);
-var
-  x: integer;
-begin
-  x := WeekDay * 11 + LessonNumber;
-  LessAbs[x] := Value;
-end;
+//procedure TKlass.SetLesson(WeekDay, LessonNumber: integer;
+//  const Value: TSubject);
+//var
+//  x: integer;
+//begin
+//  x := WeekDay * 11 + LessonNumber;
+//  LessAbs[x] := Value;
+//end;
 
 {public}
 constructor TKlass.Create;
-var
-  I: integer;
+//var
+//  I: integer;
 begin
   inherited;
   FTeachers := TTeachers.Create(false);
   FKabinets := TKabinets.Create(false);
-  for I := 0 to LessCount - 1 do
-    FLesson[I] := nil;
+//  for I := 0 to LessCount - 1 do
+//    FLesson[I] := nil;
 end;
 
 destructor TKlass.Destroy;
@@ -923,8 +923,8 @@ begin
 end;
 
 procedure TKlass.Assign(Source: TPersistent);
-var
-  I: integer;
+//var
+//  I: integer;
 begin
   if Source is TKlass then
     with TKlass(Source) do begin
@@ -935,8 +935,8 @@ begin
       self.FChecked := Checked;
       self.FLock := Lock;
       self.FCross := Cross;
-      for I := 0 to LessCount - 1 do
-        self.FLesson[I] := LessAbs[I];
+//      for I := 0 to LessCount - 1 do
+//        self.FLesson[I] := LessAbs[I];
     end
   else
     inherited Assign(Source);
@@ -1974,7 +1974,7 @@ begin
   // Увеличить сумму часов предмета в расписании
     InTimeTable := InTimeTable + 1;
   // Задать текущие координаты предмета в сетке расписания
-    Klass.LessAbs[LessonIndex] := Subject;
+    /// 24.04.2012 old -> Klass.LessAbs[LessonIndex] := Subject;
   // Отметить номер урока как занятый
     Klass.Cross := Klass.Cross + [LessonIndex];
   // Запомнить номер класса
@@ -2070,8 +2070,11 @@ begin
 end;
 
 procedure TTimeTable.Delete(LessonIndex: integer; Klass: TKlass);
+var
+  Subj:TSubject;
 begin
-  Delete(LessonIndex, Klass.LessAbs[LessonIndex]);
+  Subj:=ForKlasses[Klass.ItemIndex,LessonIndex];
+  Delete(LessonIndex, Subj);
 end;
 
 procedure TTimeTable.Delete(LessonIndex: integer; Subject: TSubject);
@@ -2109,10 +2112,10 @@ begin
     Delete(LessonIndex, Klasses[Teacher.TimeTableX[LessonIndex][I]]);
 end;
 
-procedure TTimeTable.Delete2(LessonIndex: integer; Klass: TKlass);
-begin
-  Delete(LessonIndex, Klass.LessAbs[LessonIndex]);
-end;
+//procedure TTimeTable.Delete2(LessonIndex: integer; Klass: TKlass);
+//begin
+//  Delete(LessonIndex, Klass.LessAbs[LessonIndex]);
+//end;
 
 procedure TTimeTable.Delete2(LessonIndex: integer; Kabinet: TKabinet);
 var
@@ -2130,26 +2133,26 @@ begin
     Delete(LessonIndex, Klasses[Teacher.TimeTableX[LessonIndex][I]]);
 end;
 
-procedure TTimeTable.Delete2(LessonIndex: integer; Subject: TSubject);
-var
-  I, KlassIndex: integer;
-begin
-  if Subject = nil then
-    Exit;
-  with Subject do begin
-    if Klass = nil then
-      Exit;
-    KlassIndex := Klass.ItemIndex;
-    InTimeTable := InTimeTable - 1;
-    for I := 0 to TeacherCount - 1 do begin
-      Teachers[I].TimeTableX.Klasses[LessonIndex].Delete(KlassIndex);
-      Teachers[I].DecCross(LessonIndex);
-      Kabinets[I].TimeTableX.Klasses[LessonIndex].Delete(KlassIndex);
-      Kabinets[I].DecCross(LessonIndex);
-    end;
-    Klass.LessAbs[LessonIndex] := nil;
-  end;
-end;
+//procedure TTimeTable.Delete2(LessonIndex: integer; Subject: TSubject);
+//var
+//  I, KlassIndex: integer;
+//begin
+//  if Subject = nil then
+//    Exit;
+//  with Subject do begin
+//    if Klass = nil then
+//      Exit;
+//    KlassIndex := Klass.ItemIndex;
+//    InTimeTable := InTimeTable - 1;
+//    for I := 0 to TeacherCount - 1 do begin
+//      Teachers[I].TimeTableX.Klasses[LessonIndex].Delete(KlassIndex);
+//      Teachers[I].DecCross(LessonIndex);
+//      Kabinets[I].TimeTableX.Klasses[LessonIndex].Delete(KlassIndex);
+//      Kabinets[I].DecCross(LessonIndex);
+//    end;
+//    Klass.LessAbs[LessonIndex] := nil;
+//  end;
+//end;
 
 //////////////////////////////////////////////////
                 { TSubjects }

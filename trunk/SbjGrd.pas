@@ -1607,8 +1607,10 @@ begin
       cmKlass:
       begin
         kl := TKlass(Headers[ACol]);
-        if kl <> nil then
-          CurrentSubject := kl.LessAbs[cl];
+        if kl <> nil then begin
+          // 25.04.2012 old -> CurrentSubject := kl.LessAbs[cl];
+          CurrentSubject := TimeTable.ForKlasses[kl.ItemIndex, cl];  
+        end;
         CurrentKlass := kl;
       end;
       cmTeacher:
