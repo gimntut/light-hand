@@ -56,9 +56,9 @@ type
    property OnChangeIndex:tChangeIndexEvent read FOnChangeIndex write FOnChangeIndex;
   end;
   //////////////////////////////////////////////////
-  TSuoerGrid=Class;
+  TNewGrid=Class;
   TChangeCellEvent=procedure (Sender:TObject;ACol,ARow:integer) of object;
-  TEditEvent=procedure(Sender:TSuoerGrid; ARow:integer;Var CanEdit:boolean) of object;
+  TEditEvent=procedure(Sender:TNewGrid; ARow:integer;Var CanEdit:boolean) of object;
 
   TSubStringList=Class(TStrings)
   private
@@ -108,7 +108,7 @@ type
    FHint: String;
    FInfo: String;
    FOnValidResult: TBoolEvent;
-   function GetGrid: TSuoerGrid;
+   function GetGrid: TNewGrid;
    function GetIam: TNGColumn;
    function GetStrings: TStrings;
    procedure SetHint(const Value: String);
@@ -127,7 +127,7 @@ type
    procedure SetRelativeWidth(const Value: integer);
    procedure SetStrings(const Value: TStrings);
    procedure StringChange(Sender:TObject);
-   property Grid:TSuoerGrid read GetGrid;
+   property Grid:TNewGrid read GetGrid;
   protected
    function GetDisplayName: String; override;
    procedure ChangeWidth;
@@ -150,7 +150,7 @@ type
 
   TNGCollection=Class(TCollection)
   private
-   Grid:TSuoerGrid;
+   Grid:TNewGrid;
    function GetIam: TNGCollection;
    function GetItems(x: integer): TNGColumn;
    procedure SetItems(x: integer; const Value: TNGColumn);
@@ -158,7 +158,7 @@ type
    function GetOwner: TPersistent; override;
    procedure Update(Item: TCollectionItem); override;
   public
-   Constructor Create(AGrid:TSuoerGrid);
+   Constructor Create(AGrid:TNewGrid);
    function Add:TNGColumn;
    property Iam:TNGCollection read GetIam;
    property Items[x:integer]:TNGColumn read GetItems write SetItems; default;
@@ -185,7 +185,7 @@ type
   TNewColumnEvent=procedure(Sender:TObject; Column:TNGColumn;
    index:integer) of object;
 
-  TSuoerGrid=Class(TStringGrid)
+  TNewGrid=Class(TStringGrid)
   private
    btCol,btRow:integer;
    DownBtn:tPanel;
@@ -214,7 +214,7 @@ type
    function GetDroppedDown: boolean;
    function GetHint: String;
    function GetHnt: String;
-   function GetIam: TSuoerGrid;
+   function GetIam: TNewGrid;
    function GetItemIndex(ACol, ARow: integer): integer;
    function GetRowHeights(x: integer): integer;
    function GetValues(ACol, ARow: integer): integer;
@@ -285,7 +285,7 @@ type
    property ColCount:Integer read GetColCount write SetColCount;
    property ComboCol[x:integer]:TStrings read GetComboCol write SetComboCol;
    property DroppedDown:boolean read GetDroppedDown write SetDroppedDown;
-   property Iam:TSuoerGrid read GetIam;
+   property Iam:TNewGrid read GetIam;
    property InplaceEditor;
    property ItemIndex[ACol,ARow:integer]:integer read GetItemIndex write SetItemIndex;
    property RowHeights[x:integer]:integer read GetRowHeights write SetRowHeights;
@@ -305,7 +305,7 @@ type
    property OnValidate:TValidateEvent read FOnValidate write FOnValidate;
   End;
 
-  TSuperGrid=Class(TSuoerGrid)
+  TSuperGrid=Class(TNewGrid)
   private
    FDeleteRowKey: TShortCut;
    FInsertRowKey: TShortCut;
@@ -590,19 +590,19 @@ end;
 
 { TNewGrid }
 
-procedure TSuoerGrid.BtnMouseUp(Sender: TObject; Button: TMouseButton;
+procedure TNewGrid.BtnMouseUp(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 begin
  DownBtn.BevelInner:=bvRaised;
 end;
 
-procedure TSuoerGrid.BtnMouseDown(Sender: TObject; Button: TMouseButton;
+procedure TNewGrid.BtnMouseDown(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 begin
  DownBtn.BevelInner:=bvNone;
 end;
 
-constructor TSuoerGrid.Create(AOwner: TComponent);
+constructor TNewGrid.Create(AOwner: TComponent);
 begin
  inherited;
  Exiting:=false;
@@ -645,7 +645,7 @@ begin
  End;
 end;
 
-destructor TSuoerGrid.Destroy;
+destructor TNewGrid.Destroy;
 Var
  i:integer;
 begin
@@ -655,7 +655,7 @@ begin
  inherited;
 end;
 
-procedure TSuoerGrid.DrawCell(ACol, ARow: Longint; ARect: TRect;
+procedure TNewGrid.DrawCell(ACol, ARow: Longint; ARect: TRect;
              AState: TGridDrawState);
 Var
  rct:tRect;
@@ -714,18 +714,18 @@ begin
  End;
 end;
 
-function TSuoerGrid.GetComboCol(x: integer): TStrings;
+function TNewGrid.GetComboCol(x: integer): TStrings;
 begin
  result:=FColumns[x].Strings;
 end;
 
-procedure TSuoerGrid.SetComboCol(x: integer; const Value: TStrings);
+procedure TNewGrid.SetComboCol(x: integer; const Value: TStrings);
 begin
  if (x<0) or (x>=FColumns.Count) then Exit;
  FColumns[x].Strings:=Value;
 end;
 
-procedure TSuoerGrid.BtnClick(Sender: TObject);
+procedure TNewGrid.BtnClick(Sender: TObject);
 Var
  a,b:TPoint;
  dx,dy:integer;
@@ -760,7 +760,7 @@ begin
  End;
 end;
 
-procedure TSuoerGrid.ListExit(Sender: TObject);
+procedure TNewGrid.ListExit(Sender: TObject);
 Var
  Form:tCustomForm;
 begin
@@ -770,13 +770,13 @@ begin
  if Form<>nil then Form.KeyPreView:=FormPreView;
 end;
 
-procedure TSuoerGrid.SetListColor(const Value: TColor);
+procedure TNewGrid.SetListColor(const Value: TColor);
 begin
  FListColor := Value;
  List.Color:=Value;
 end;
 
-procedure TSuoerGrid.KeyUp(var Key: Word; Shift: TShiftState);
+procedure TNewGrid.KeyUp(var Key: Word; Shift: TShiftState);
 begin
  Case ShortCut(Key,Shift) of
   scAlt+vk_Down: Begin
@@ -787,7 +787,7 @@ begin
  End;
 end;
 
-procedure TSuoerGrid.KeyDown(var Key: Word; Shift: TShiftState);
+procedure TNewGrid.KeyDown(var Key: Word; Shift: TShiftState);
 begin
  Case ShortCut(Key,Shift) of
   VK_RIGHT: GoToNextCell;
@@ -807,20 +807,20 @@ begin
  End;
 end;
 
-procedure TSuoerGrid.ListClick(Sender: TObject);
+procedure TNewGrid.ListClick(Sender: TObject);
 begin
  if List.ItemIndex=-1 then Exit;
  With List, Items do
   ToCell(btCol,btRow,ItemIndex)
 end;
 
-procedure TSuoerGrid.ListDBlClick(Sender: TObject);
+procedure TNewGrid.ListDBlClick(Sender: TObject);
 begin
  isNew:=true;
  self.SetFocus;
 end;
 
-procedure TSuoerGrid.ListKeyUp(Sender:TObject; var Key: Word; Shift: TShiftState);
+procedure TNewGrid.ListKeyUp(Sender:TObject; var Key: Word; Shift: TShiftState);
 Var
  sc:Word;
 begin
@@ -830,7 +830,7 @@ begin
  if sc in [vk_Return,vk_Escape] then Self.SetFocus;
 end;
 
-procedure TSuoerGrid.ToCell(x, y: integer; s: String; Data: TObject);
+procedure TNewGrid.ToCell(x, y: integer; s: String; Data: TObject);
 Var
  ii:integer;
 begin
@@ -844,18 +844,18 @@ begin
  if Assigned(FOnChangeCell) then FOnChangeCell(self,x,y);
 end;
 
-procedure TSuoerGrid.SetName(const NewName: TComponentName);
+procedure TNewGrid.SetName(const NewName: TComponentName);
 begin
  inherited;
  if List<>nil then List.Name:=NewName;
 end;
 
-procedure TSuoerGrid.SetListLinesCount(const Value: Integer);
+procedure TNewGrid.SetListLinesCount(const Value: Integer);
 begin
  FListLinesCount := Value;
 end;
 
-function TSuoerGrid.GetItemIndex(ACol, ARow: integer): integer;
+function TNewGrid.GetItemIndex(ACol, ARow: integer): integer;
 begin
  result:=-1;
  if (ACol<0) or (ACol>ColCount-1) then Exit;
@@ -864,7 +864,7 @@ begin
  result:=FItemIndex[ACol,ARow];
 end;
 
-procedure TSuoerGrid.SetItemIndex(ACol, ARow: integer; const Value: integer);
+procedure TNewGrid.SetItemIndex(ACol, ARow: integer; const Value: integer);
 begin
  if (ACol<0) or (ACol>ColCount-1) then Exit;
  if (ARow<0) or (ARow>RowCount-1) then Exit;
@@ -872,7 +872,7 @@ begin
  ToCell(ACol,ARow,Value)
 end;
 
-procedure TSuoerGrid.PrepareItInd(ACol, ARow: integer);
+procedure TNewGrid.PrepareItInd(ACol, ARow: integer);
 Var
  i,l1,l2:integer;
 begin
@@ -885,7 +885,7 @@ begin
  End;
 end;
 
-procedure TSuoerGrid.ToCell(x, y, ItInd: integer);
+procedure TNewGrid.ToCell(x, y, ItInd: integer);
 Var
  s:string;
 begin
@@ -903,19 +903,19 @@ begin
  if Assigned(FOnChangeCell) then FOnChangeCell(self,x,y);
 end;
 
-function TSuoerGrid.CanEditShow: Boolean;
+function TNewGrid.CanEditShow: Boolean;
 begin
  result:=true;
  if Columns[Col]<>nil then result:=Columns[Col].DoEdit(Row);
  result:=result and inherited CanEditShow;
 end;
 
-function TSuoerGrid.CreateEditor: TInplaceEdit;
+function TNewGrid.CreateEditor: TInplaceEdit;
 begin
  result:=TNGEditor.Create(self);
 end;
 
-procedure TSuoerGrid.SetBeMark(const Value: boolean);
+procedure TNewGrid.SetBeMark(const Value: boolean);
 begin
  FBeMark := false;
  if FOnlyView then Exit;
@@ -923,13 +923,13 @@ begin
  DownBtn.Visible:=(ComboCol[Col].Count>0) and Value;
 end;
 
-function TSuoerGrid.SelectCell(ACol, ARow: Integer): Boolean;
+function TNewGrid.SelectCell(ACol, ARow: Integer): Boolean;
 begin
  result:=inherited SelectCell(ACol,ARow);
  Cells[ACol,ARow]:=Cells[ACol,ARow];
 end;
 
-procedure TSuoerGrid.GoToNextCell;
+procedure TNewGrid.GoToNextCell;
 Var
  x:integer;
  us:boolean;
@@ -946,7 +946,7 @@ begin
  Row:=x div ColCount;
 end;
 
-procedure TSuoerGrid.GoToPrevCell;
+procedure TNewGrid.GoToPrevCell;
 Var
  x:integer;
  us:boolean;
@@ -963,23 +963,23 @@ begin
  Row:=x div ColCount;
 end;
 
-procedure TSuoerGrid.SetColumns(const Value: TNGCollection);
+procedure TNewGrid.SetColumns(const Value: TNGCollection);
 begin
  FColumns.assign(Value);
 end;
 
-procedure TSuoerGrid.SetFixedCols(const Value: integer);
+procedure TNewGrid.SetFixedCols(const Value: integer);
 begin
  inherited FixedCols:=Value;
 end;
 
-procedure TSuoerGrid.UpdateColumn(x: integer);
+procedure TNewGrid.UpdateColumn(x: integer);
 begin
  Inherited ColCount:=FColumns.Count;
  Cells[x,0]:=FColumns[x].Caption;
 end;
 
-procedure TSuoerGrid.UpdateColumns;
+procedure TNewGrid.UpdateColumns;
 Var
  i:integer;
 begin
@@ -987,35 +987,35 @@ begin
  For i:=0 to ColCount-1 do UpdateColumn(i);
 end;
 
-procedure TSuoerGrid.CMEnter(var Message: TCMEnter);
+procedure TNewGrid.CMEnter(var Message: TCMEnter);
 begin
  inherited;
  DrawCell(Col,Row);
  FocusCell(Col,Row,true);
 end;
 
-function TSuoerGrid.GetIam: TSuoerGrid;
+function TNewGrid.GetIam: TNewGrid;
 begin
  result:=self;
 end;
 
-procedure TSuoerGrid.Clear;
+procedure TNewGrid.Clear;
 Var
  i:integer;
 begin
  For i:=1 to RowCount-1 do Rows[i].Clear;
 end;
 
-procedure TSuoerGrid.SetHideSelection(const Value: boolean);
+procedure TNewGrid.SetHideSelection(const Value: boolean);
 begin
   FHideSelection := Value;
 end;
 
-procedure TSuoerGrid.CMChildKey(var Message: TCMChildKey);
+procedure TNewGrid.CMChildKey(var Message: TCMChildKey);
 begin
 end;
 
-procedure TSuoerGrid.WMGetDlgCode(var Msg: TWMGetDlgCode);
+procedure TNewGrid.WMGetDlgCode(var Msg: TWMGetDlgCode);
 Var
  op:TGridOptions;
  sh:Boolean;
@@ -1030,7 +1030,7 @@ begin
  Options:=op;
 end;
 
-function TSuoerGrid.Valid: boolean;
+function TNewGrid.Valid: boolean;
 Var
  a:Integer;
  b:Extended;
@@ -1071,13 +1071,13 @@ begin
   then Columns[Col].FOnValidResult(self,result);
 end;
 
-function TSuoerGrid.GetEditMask(ACol, ARow: Integer): String;
+function TNewGrid.GetEditMask(ACol, ARow: Integer): String;
 begin
  FOldText:=Cells[ACol,ARow];
  result:='';
 end;
 
-procedure TSuoerGrid.DoExit;
+procedure TNewGrid.DoExit;
 begin
  if Valid then inherited Doexit else Begin
   Exiting:=true;
@@ -1088,13 +1088,13 @@ begin
  End;
 end;
 
-procedure TSuoerGrid.MouseDown(Button: TMouseButton; Shift: TShiftState; X,
+procedure TNewGrid.MouseDown(Button: TMouseButton; Shift: TShiftState; X,
   Y: Integer);
 begin
  if Valid then inherited;
 end;
 
-procedure TSuoerGrid.WMCommand(var Message: TWMCommand);
+procedure TNewGrid.WMCommand(var Message: TWMCommand);
 begin
  if not (Message.NotifyCode=EN_CHANGE)
   then inherited
@@ -1102,7 +1102,7 @@ begin
   Message.Result:=1;
 end;
 
-function TSuoerGrid.GetEditLimit: Integer;
+function TNewGrid.GetEditLimit: Integer;
 begin
  With Columns[Col] do Case DataType of
   ctInteger: result:=11;
@@ -1111,7 +1111,7 @@ begin
  End;
 end;
 
-function TSuoerGrid.GetEditText(ACol, ARow: Integer): String;
+function TNewGrid.GetEditText(ACol, ARow: Integer): String;
 begin
  result:=inherited GetEditText(ACol,ARow);
  if result='' then
@@ -1123,28 +1123,28 @@ begin
   End;
 end;
 
-procedure TSuoerGrid.SetHint(const Value: String);
+procedure TNewGrid.SetHint(const Value: String);
 begin
  FHint:=Value;
  Hnt:=Value;
 end;
 
-procedure TSuoerGrid.SetHnt(const Value: String);
+procedure TNewGrid.SetHnt(const Value: String);
 begin
  inherited Hint := Value;
 end;
 
-function TSuoerGrid.GetHnt: String;
+function TNewGrid.GetHnt: String;
 begin
  result:=Inherited Hint;
 end;
 
-function TSuoerGrid.GetHint: String;
+function TNewGrid.GetHint: String;
 begin
  result:=Hnt;
 end;
 
-procedure TSuoerGrid.MouseMove(Shift: TShiftState; X, Y: Integer);
+procedure TNewGrid.MouseMove(Shift: TShiftState; X, Y: Integer);
 Var
  a,b:integer;
  s:string;
@@ -1158,13 +1158,13 @@ begin
  Hnt:=s;
 end;
 
-procedure TSuoerGrid.KeyPress(var Key: Char);
+procedure TNewGrid.KeyPress(var Key: Char);
 begin
  if (Key=#13) and EditorMode and not Valid then Exit;
  inherited;
 end;
 
-procedure TSuoerGrid.SetEditText(ACol, ARow: Integer; const Value: String);
+procedure TNewGrid.SetEditText(ACol, ARow: Integer; const Value: String);
 Var
  x:TDateTime;
 begin
@@ -1177,17 +1177,17 @@ begin
  End;
 end;
 
-function TSuoerGrid.GetValues(ACol, ARow: integer): integer;
+function TNewGrid.GetValues(ACol, ARow: integer): integer;
 begin
  result:=Integer(Objects[ACol,ARow]);
 end;
 
-procedure TSuoerGrid.SetValues(ACol, ARow: integer; const Value: integer);
+procedure TNewGrid.SetValues(ACol, ARow: integer; const Value: integer);
 begin
  Objects[ACol,ARow]:=TObject(Value);
 end;
 
-function TSuoerGrid.SwitchValueTo(ACol,ARow,Value: integer):boolean;
+function TNewGrid.SwitchValueTo(ACol,ARow,Value: integer):boolean;
 Var
  n:integer;
 begin
@@ -1199,7 +1199,7 @@ begin
  result:=true;
 end;
 
-function TSuoerGrid.Focused: Boolean;
+function TNewGrid.Focused: Boolean;
 begin
  result:=inherited Focused;
  if List<>nil then result:=result or List.Focused;
@@ -1207,39 +1207,39 @@ begin
   then result:=result or InplaceEditor.Focused;
 end;
 
-procedure TSuoerGrid.SetDroppedDown(const Value: boolean);
+procedure TNewGrid.SetDroppedDown(const Value: boolean);
 begin
  if not Value
  then List.Visible:=false
  else if (ComboCol[Col].Count>0) and Focused then BtnClick(DownBtn);
 end;
 
-function TSuoerGrid.GetDroppedDown: boolean;
+function TNewGrid.GetDroppedDown: boolean;
 begin
  result:=List.Visible;
 end;
 
-function TSuoerGrid.GetRowHeights(x: integer): integer;
+function TNewGrid.GetRowHeights(x: integer): integer;
 begin
  result:=MulDiv(inherited RowHeights[x],96,Screen.PixelsPerInch);
 end;
 
-procedure TSuoerGrid.SetRowHeights(x: integer; const Value: integer);
+procedure TNewGrid.SetRowHeights(x: integer; const Value: integer);
 begin
  inherited RowHeights[x]:=MulDiv(Value,Screen.PixelsPerInch,96);
 end;
 
-procedure TSuoerGrid.SetDefaultRowHeight(const Value: integer);
+procedure TNewGrid.SetDefaultRowHeight(const Value: integer);
 begin
  inherited DefaultRowHeight:=MulDiv(Value,Screen.PixelsPerInch,96);
 end;
 
-function TSuoerGrid.GetDefaultRowHeight: integer;
+function TNewGrid.GetDefaultRowHeight: integer;
 begin
  result:=MulDiv(inherited DefaultRowHeight,96,Screen.PixelsPerInch);
 end;
 
-procedure TSuoerGrid.Click;
+procedure TNewGrid.Click;
 Var
  x:TWinControl;
 begin
@@ -1249,7 +1249,7 @@ begin
  x.Perform(27777,Integer(self),0);
 end;
 
-procedure TSuoerGrid.WMLButtonDblClk(var Message: TWMLButtonDblClk);
+procedure TNewGrid.WMLButtonDblClk(var Message: TWMLButtonDblClk);
 Var
  cr:TGridCoord;
 begin
@@ -1262,18 +1262,18 @@ begin
  DroppedDown:=not DroppedDown;
 end;
 
-procedure TSuoerGrid.SetOnlyView(const Value: boolean);
+procedure TNewGrid.SetOnlyView(const Value: boolean);
 begin
  FOnlyView := Value;
  if Value then BeMark:=false;
 end;
 
-function TSuoerGrid.GetColCount: Integer;
+function TNewGrid.GetColCount: Integer;
 begin
  result:=Inherited ColCount;
 end;
 
-procedure TSuoerGrid.SetColCount(const Value: Integer);
+procedure TNewGrid.SetColCount(const Value: Integer);
 Var
  i,m:integer;
 begin
@@ -1284,7 +1284,7 @@ begin
  inherited ColCount:=Value;
 end;
 
-function TSuoerGrid.GetCellState(ACol, ARow: Integer): TGridDrawState;
+function TNewGrid.GetCellState(ACol, ARow: Integer): TGridDrawState;
 begin
  Result:=[];
  if (ACol<inherited FixedCols) or (ARow<FixedRows) then Result:=[gdFixed];
@@ -1294,7 +1294,7 @@ begin
   then Result:=Result+[gdSelected];
 end;
 
-procedure TSuoerGrid.DrawCell(ACol, ARow: integer);
+procedure TNewGrid.DrawCell(ACol, ARow: integer);
 begin
  DrawCell(Acol,ARow,CellRect(ACol,ARow),CellState[ACol,ARow]);
 end;
@@ -1376,9 +1376,9 @@ begin
  Result:=Caption;
 end;
 
-function TNGColumn.GetGrid: TSuoerGrid;
+function TNGColumn.GetGrid: TNewGrid;
 begin
- result:=TSuoerGrid(Collection.Owner);
+ result:=TNewGrid(Collection.Owner);
 end;
 
 function TNGColumn.GetIam: TNGColumn;
@@ -1398,10 +1398,10 @@ end;
 
 procedure TNGColumn.SetCaption(const Value: String);
 Var
- Grid:TSuoerGrid;
+ Grid:TNewGrid;
 begin
  FCaption:=Value;
- Grid:=TSuoerGrid(Collection.Owner);
+ Grid:=TNewGrid(Collection.Owner);
  if Grid<>nil then
   Grid.Cells[index,0]:=Value;
 end;
@@ -1447,7 +1447,7 @@ procedure TNGEditor.Change;
 begin
  inherited;
  if Grid=nil then Exit;
- if not TSuoerGrid(Grid).Valid then Begin
+ if not TNewGrid(Grid).Valid then Begin
   if FTextColor=-1 then FTextColor:=Font.Color;
   Font.Color:=clRed;
  End else
@@ -1488,7 +1488,7 @@ end;
 procedure TNGEditor.KeyPress(var Key: Char);
 begin
  inherited;
- With TSuoerGrid(Grid), Columns[Col] do Begin
+ With TNewGrid(Grid), Columns[Col] do Begin
   if DataType=ctString then Exit;
   if not (Key in ['-','0'..'9',#8,'.',',',':']) then begin
    key:=#0;
@@ -1780,7 +1780,7 @@ begin
  if x>0 then Result.RelativeWidth:=Items[x-1].RelativeWidth;
 end;
 
-constructor TNGCollection.Create(AGrid: TSuoerGrid);
+constructor TNGCollection.Create(AGrid: TNewGrid);
 begin
  Grid:=AGrid;
  inherited Create(TNGColumn);
