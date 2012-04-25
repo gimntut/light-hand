@@ -24,7 +24,7 @@ package Nail_;
 {$IMAGEBASE $51000000}
 {$DESCRIPTION 'Набор компонент от эНДи'}
 {$DESIGNONLY}
-{$IMPLICITBUILD ON}
+{$IMPLICITBUILD OFF}
 
 requires
   rtl,
