@@ -341,11 +341,11 @@ end;
 
 function TSubjSource.GetLessonCount: integer;
 var
-  i: integer;
+  I: integer;
 begin
   result := 0;
-  for i := 0 to 10 do
-    if i in Subjs.Lessons then
+  for I := 0 to 10 do
+    if I in Subjs.Lessons then
       inc(Result);
 end;
 
@@ -386,11 +386,11 @@ end;
 
 function TSubjSource.GetWeekDayCount: integer;
 var
-  i: TWeekDay;
+  I: TWeekDay;
 begin
   result := 0;
-  for i := wdMonday to wdSunday do
-    if i in Subjs.WeekDays then
+  for I := wdMonday to wdSunday do
+    if I in Subjs.WeekDays then
       inc(Result);
 end;
 
@@ -727,10 +727,10 @@ end;
 
 procedure TSubjSource.NotifyLink(Event: TSubjEvent; info: integer);
 var
-  i: integer;
+  I: integer;
 begin
-  for i := 0 to SubjLinks.Count - 1 do
-    SubjLinks[i].SubjEvent(Event, Info);
+  for I := 0 to SubjLinks.Count - 1 do
+    SubjLinks[I].SubjEvent(Event, Info);
 end;
 
 procedure TSubjSource.SetActivate(const Value: boolean);
@@ -798,14 +798,14 @@ end;
 
 procedure TSubjSource.SetLessons(const Value: s11);
 var
-  i: integer;
+  I: integer;
   ls: s11;
 begin
   ls := Subjs.Lessons + Value - Subjs.Lessons * Value;
   Subjs.Lessons := [] + Value;
-  for i := 0 to 10 do
-    if i in ls then
-      NotifyLink(seCheckLesson, i);
+  for I := 0 to 10 do
+    if I in ls then
+      NotifyLink(seCheckLesson, I);
 end;
 
 procedure TSubjSource.SetManager(const Value: TSubjCustomManager);
@@ -824,14 +824,14 @@ end;
 procedure TSubjSource.SetWeekDays(const Value: TSetWeekDays);
 var
   wd, dif: TSetWeekDays;
-  i: TWeekDay;
+  I: TWeekDay;
 begin
   wd := Value;
   dif := Subjs.WeekDays + wd - Subjs.WeekDays * wd;
   Subjs.WeekDays := wd;
-  for i := wdMonday to wdSunday do
-    if i in dif then
-      NotifyLink(seCheckWeekDay, ord(i));
+  for I := wdMonday to wdSunday do
+    if I in dif then
+      NotifyLink(seCheckWeekDay, ord(I));
 end;
 
 procedure TSubjSource.SwapKabinets(ind1, ind2: integer);
@@ -905,14 +905,20 @@ end;
 
 function TSubjSource.StateOf(ASubject: TSubject; ALesson: Integer): TSubjState;
 var
-  i: integer;
+  I: integer;
   Sbj: TSubject;
   Item: TRefItem;
-  ints: TIntegers;
+  Ints: TIntegers;
 begin
  //todo 1 : StateOf - Подлежит изменению
+
+ /// 25.04.2012
+ /// функция расчитывает какие из предметов конфликтуют с заданным
+ /// чтобы у предмета не было конфликта с самим собой, убираем его
+ /// из расписания, а после расчетов возвращаем обратно
+
  // Список чисел
-  ints := TIntegers.Create;
+  Ints := TIntegers.Create;
  // Неопределён текущий столбец
   Item := nil;
  // Определьть текущий столбец
@@ -921,7 +927,7 @@ begin
   // то запомнить текущий класс в списке чисел
     cmKlass:
       if CurrentKlass <> nil then
-        ints.Add(CurrentKlass.ItemIndex);
+        Ints.Add(CurrentKlass.ItemIndex);
     cmKabinet:
       Item := CurrentKabinet;
     cmTeacher:
@@ -932,11 +938,13 @@ begin
   if Item <> nil then
     Ints.Add(Item.TimeTableX[ALesson]);
  // Перебрать все классы
-  for i := 0 to ints.Count - 1 do begin
+  for I := 0 to Ints.Count - 1 do begin
   // Определить предмет находящийся в текущей классе,
   // текущего урока
-    sbj := Klasses[ints[i]].LessAbs[ALesson];
-    ints.Objects[i] := sbj;
+
+  // 25.04.2012 old -> sbj := Klasses[ints[I]].LessAbs[ALesson];
+    sbj := TimeTable.ForKlasses[Ints[I],ALesson];
+    Ints.Objects[I] := sbj;
     if sbj = nil then
       Continue;
   // Удалить предмет из расписания
@@ -945,12 +953,12 @@ begin
  // Определить состояние одного из предметов основного списка
   Result := ASubject.State[ALesson];
  // Перебрать уроки
-  for i := 0 to LessonCount - 1 do
+  for I := 0 to LessonCount - 1 do
   // Если для одного из уроков есть предмет,
   // то поставить его в сетку расписания
-    if ints.Objects[i] <> nil then
-      TimeTable.Add(ALesson, TSubject(ints.objects[i]));
-  ints.Free;
+    if Ints.Objects[I] <> nil then
+      TimeTable.Add(ALesson, TSubject(Ints.Objects[I]));
+  Ints.Free;
 end;
 
 procedure TSubjSource.Add(TypeOfSubj: TTypeOfData);
