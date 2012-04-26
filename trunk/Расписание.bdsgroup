@@ -17,6 +17,8 @@
     </Projects>
     <Dependencies>
       <Dependency GUID="{4738FADE-76CA-4A5E-8808-25F81DA1EAC5}">
+        <Dependency GUID="{ED235015-D573-4E19-9030-2780F38E9166}"/>
+        <Dependency GUID="{890112BA-A652-4785-B882-0512771EE1F0}"/>
         <Dependency GUID="{0EF126DF-B9DB-4494-9979-BB2AFCA69D17}"/>
       </Dependency>
     </Dependencies>
