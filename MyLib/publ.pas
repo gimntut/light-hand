@@ -2206,10 +2206,10 @@ function TIntegers.Find(Num: integer; out Ind: integer): boolean;
 var
   L: Integer;
 begin
+  Ind := -1;
+  if MaxInd=-1 then Exit;
   Result := FindX(Num, l);
-  if (l < 0) or (l > MaxInd) then
-    Ind := -1
-  else
+  if (l >= 0) and (l <= MaxInd) then
     Ind := FInts[L].Y;
 end;
 
