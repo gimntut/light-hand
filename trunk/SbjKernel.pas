@@ -2055,6 +2055,9 @@ begin
       Subject.Kabinets[I].IncCross(LessonIndex);
     end;
     Subj := TSubject.Create(Subject.FNames);
+    /// 28.04.2012
+    ///  При создании копии предмета он запоминается, как новый предмет
+    ///  в том же классе
     Subj.Assign(Subject);
     Subj.FParent := Subject;
     Subj.LessonIndex:=LessonIndex;
