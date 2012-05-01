@@ -689,7 +689,7 @@ procedure TSubjList.OutSubjects;
 var
   i: integer;
   sx: TPlainSubjects;
-  si: TSimpleItem;
+  SimpleItem: TSimpleItem;
 begin
  // Вывод списка предметов для заданой колонки
  //////////////////////////////////////////////////
@@ -708,19 +708,19 @@ begin
   // Определить текущий столбец
     case ColumnMode of
       cmKlass:
-        si := CurrentKlass;
+        SimpleItem := CurrentKlass;
       cmTeacher:
-        si := CurrentTeacher;
+        SimpleItem := CurrentTeacher;
       cmKabinet:
-        si := CurrentKabinet;
+        SimpleItem := CurrentKabinet;
     else
-      si := nil;
+      SimpleItem := nil;
     end;
   // Если столбец определён
-    if si <> nil then
+    if SimpleItem <> nil then
    // и текущая клетка не заблокирована, то запомнить предмет в текущей клетке
-      if not si.IsLock(CurrentLesson) then
-        sx := si.SubjectX;
+      if not SimpleItem.IsLock(CurrentLesson) then
+        sx := SimpleItem.SubjectX;
   // Показать значки пересечений
     case SubjSource.ColumnMode of
       cmKlass:
