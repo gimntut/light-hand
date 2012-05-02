@@ -2,10 +2,10 @@ unit SbjColl;
 
 interface
 
-Uses SysUtils, Classes, publ, SbjResource;
+uses SysUtils, Classes, publ, SbjResource;
 
-Type
-  TCollItem = Class (TPersistent)
+type
+  TCollItem = class (TPersistent)
   private
     FItemIndex: Integer;
     function GetIm: TCollItem;
@@ -16,31 +16,43 @@ Type
     destructor Destroy; override;
     property ItemIndex: Integer read FItemIndex write SetIndex;
     property Im: TCollItem read GetIm;
-  End;
- ////////////////////// x //////////////////////
-  TColl = Class (TPersistent)
+  end;
+  ////////////////////// x //////////////////////
+  TAddEvent = procedure(Sender:TObject; AItem:TCollItem) of object;
+  TDeleteEvent = procedure(Sender:TObject; AItem:TCollItem; AutoFree:Boolean) of object;
+  ////////////////////// x //////////////////////
+  TColl = class (TPersistent)
   private
     FAutoIndex: Boolean;
+    FOnDelete: TDeleteEvent;
+    FOnAdd: TAddEvent;
     function GetCount: Integer;
     procedure SetAutoIndex(const Value: Boolean);
+    procedure SetOnAdd(const Value: TAddEvent);
+    procedure SetOnDelete(const Value: TDeleteEvent);
   protected
     MaxInd: Integer;
     FItem: array of TCollItem;
     function GetItem(Index: Integer): TCollItem;
     procedure SetItem(Index: Integer; const Value: TCollItem);
-    Function Find(ind: Integer): Integer;
+    function Find(ind: Integer): Integer;
+  protected
+    procedure DoAdd(AItem:TCollItem); virtual;
+    procedure DoDelete(AItem:TCollItem; AutoFree:Boolean); virtual;
+    property OnAdd:TAddEvent read FOnAdd write SetOnAdd;
+    property OnDelete:TDeleteEvent read FOnDelete write SetOnDelete;
   public
-    Constructor Create(AutoIndex: Boolean);
-    Destructor Destroy; override;
+    constructor Create(AutoIndex: Boolean);
+    destructor Destroy; override;
     property Item[Index: Integer]: TCollItem read GetItem write SetItem; default;
     property Count: Integer read GetCount;
     property AutoIndex: Boolean read FAutoIndex write SetAutoIndex;
-    function Add(It: TCollItem): Integer;
+    function Add(AItem: TCollItem): Integer;
     procedure Delete(Index: Integer; AutoFree: Boolean = False); overload;
-    procedure Delete(it: TCollItem; AutoFree: Boolean = False); overload;
+    procedure Delete(AItem: TCollItem; AutoFree: Boolean = False); overload;
     procedure Swap(Index1, Index2: Integer);
     procedure Clear(AllFree: Boolean = False);
-  End;
+  end;
 
 implementation
 
@@ -48,34 +60,35 @@ implementation
 
 { TColl }
 
-function TColl.Add(It: TCollItem): Integer;
-Var
+function TColl.Add(AItem: TCollItem): Integer;
+var
   i, x: Integer;
 begin
  // Добавление нового элемента
   inc(MaxInd);
   SetLength(FItem, Count);
-  if FAutoIndex or (it = nil) then
+  if FAutoIndex or (AItem = nil) then
     x := MaxInd
-  else Begin
-    x := Find(it.ItemIndex);
+  else begin
+    x := Find(AItem.ItemIndex);
     if x = -1 then
       x := MaxInd
     else
-      For i := MaxInd downto x + 1 do
+      for i := MaxInd downto x + 1 do
         FItem[i] := FItem[i - 1];
-  End;
-  Item[x] := it;
-  result := x;
+  end;
+  Item[x] := AItem;
+  Result := x;
+  DoAdd(AItem);
 end;
 
 procedure TColl.Clear(AllFree: Boolean);
-Var
+var
   i: Integer;
 begin
  // Удалить все
   if AllFree then
-    For i := 0 to MaxInd do
+    for i := 0 to MaxInd do
       FItem[i].Free;
   MaxInd := -1;
   SetLength(FItem, 0);
@@ -88,21 +101,21 @@ begin
  //LogInc(self.ClassName);
 end;
 
-procedure TColl.Delete(it: TCollItem; AutoFree: Boolean);
-Var
+procedure TColl.Delete(AItem: TCollItem; AutoFree: Boolean);
+var
   i: Integer;
 begin
- // Удалить
+  // Удалить
   if FAutoIndex then
-    Delete(it.ItemIndex, AutoFree)
+    Delete(AItem.ItemIndex, AutoFree)
   else
-    For i := MaxInd downto 0 do
-      if it = FItem[i] then
+    for i := MaxInd downto 0 do
+      if AItem = FItem[i] then
         Delete(i, AutoFree);
 end;
 
 procedure TColl.Delete(Index: Integer; AutoFree: Boolean);
-Var
+var
   i: Integer;
 begin
  // Удалить, если есть
@@ -113,7 +126,7 @@ begin
   if FAutoIndex then
     Item[Index] := FItem[MaxInd]
   else
-    For i := Index to Maxind - 1 do
+    for i := Index to Maxind - 1 do
       FItem[i] := FItem[i + 1];
   SetLength(FItem, MaxInd);
   dec(MaxInd);
@@ -125,17 +138,27 @@ begin
   inherited;
 end;
 
+procedure TColl.DoAdd(AItem: TCollItem);
+begin
+  if Assigned(FOnAdd) then FOnAdd(self, AItem);
+end;
+
+procedure TColl.DoDelete(AItem: TCollItem; AutoFree: Boolean);
+begin
+  if Assigned(FOnDelete) then FOnDelete(self, AItem, AutoFree);
+end;
+
 function TColl.Find(ind: Integer): Integer;
-Var
+var
   i: Integer;
 begin
-  result := -1;
-  For i := 0 to MaxInd do
+  result := -1;                                   
+  for i := 0 to MaxInd do
     if FItem[i] <> nil then
-      if FItem[i].ItemIndex > ind then Begin
+      if FItem[i].ItemIndex > ind then begin
         result := i;
         break;
-      End;
+      end;
 end;
 
 function TColl.GetCount: Integer;
@@ -168,8 +191,18 @@ begin
     FItem[Index].ItemIndex := Index;
 end;
 
+procedure TColl.SetOnAdd(const Value: TAddEvent);
+begin
+  FOnAdd := Value;
+end;
+
+procedure TColl.SetOnDelete(const Value: TDeleteEvent);
+begin
+  FOnDelete := Value;
+end;
+
 procedure TColl.Swap(Index1, Index2: Integer);
-Var
+var
   P: TCollItem;
 begin
  // Поменять элементы местами

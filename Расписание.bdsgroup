@@ -9,11 +9,10 @@
 		</Option>
 	</PersonalityInfo>
 	<Default.Personality>  <Projects>
-      <Projects Name="PublDpk.bpl">MyLib\PublDpk.bdsproj</Projects>
       <Projects Name="Nail_.bpl">MyLib\Nail_.bdsproj</Projects>
       <Projects Name="TimTab.bpl">TimTab.bdsproj</Projects>
       <Projects Name="LightHand.exe">LightHand.bdsproj</Projects>
-      <Projects Name="Targets">PublDpk.bpl Nail_.bpl TimTab.bpl LightHand.exe</Projects>
+      <Projects Name="Targets">Nail_.bpl TimTab.bpl LightHand.exe</Projects>
     </Projects>
     <Dependencies>
       <Dependency GUID="{4738FADE-76CA-4A5E-8808-25F81DA1EAC5}">
