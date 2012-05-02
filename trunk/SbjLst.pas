@@ -852,30 +852,30 @@ begin
     x := x + 2;
  // ≈сли пересечение по кабинету высветить кабинет
  // ≈сли пересечение по преподавателю, то высветить преподавател€
- // ≈сли пересечение по классу, то высветить класс  //
-  case SubjSource.ColumnMode of                     //
-    cmKlass:                                        //
-    begin                                           //
-      if teKabinets in st then                      //
-        x := x + 1;                                 //
-      if teTeachers in st then                      //
-        x := x + 4;                                 //
-    end;                                            //
-    cmTeacher:                                      //
-    begin                                           //
-      if teKabinets in st then                      //
-        x := x + 1;                                 //
-      if teKlass in st then                         //
-        x := x + 4;                                 //
-    end;                                            //
-    cmKabinet:                                      //
-    begin                                           //
-      if teKlass in st then                         //
-        x := x + 1;                                 //
-      if teTeachers in st then                      //
-        x := x + 4;                                 //
-    end;                                            //
-  end;                                              //
+ // ≈сли пересечение по классу, то высветить класс
+  case SubjSource.ColumnMode of
+    cmKlass:
+    begin
+      if teKabinets in st then
+        x := x + 1;
+      if teTeachers in st then
+        x := x + 4;
+    end;
+    cmTeacher:
+    begin
+      if teKabinets in st then
+        x := x + 1;
+      if teKlass in st then
+        x := x + 4;
+    end;
+    cmKabinet:
+    begin
+      if teKlass in st then
+        x := x + 1;
+      if teTeachers in st then
+        x := x + 4;
+    end;
+  end;
  // ѕоказать картинку
   Item.StateIndex := x;
 end;
