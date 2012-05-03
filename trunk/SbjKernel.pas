@@ -14,7 +14,8 @@
 /// 24.04.2012: Нужно отказаться от LessAbs
 /// 02.05.2012: Нужно разделить Кабинеты, Классы и Учителей на 2 уровня
 /// первые могут знать только про TSubjects, второй может знать про TTimeTable
-/// и про своё положение в нём. 
+/// и про своё положение в нём.
+/// 03.05.2012 Нужно удалить Teachers из TKlass
 
 unit sbjKernel;
 
@@ -182,14 +183,26 @@ type
     property Teachers: TTeachers read FTeachers;
     property WDSanPIN[WD: Integer]: Real read GetWDSanPIN;
   end;
- ////////////////////// x //////////////////////
- // TKabinet - информация об экземпляре кабинета
- // FullName(): string; - название кабинета с номером
- // Assign(Source) - копирование информации о другом кабинете
- // Num:Integer - номер кабинета
- // Klasses:TKlasses - классы которые занимаются? в данном кабинете
- // Teachers:TTeachers - учителя которые преподают в данном кабинете
- // ShowNum:boolean - показывать ли номер урока в расписании
+  ////////////////////// x //////////////////////
+  // TKlassEx - Информация об экземпляре класса
+  TKlassEx = class(TKlass)
+  private
+    FSubjects: TPlainSubjects;
+    procedure SetSubjects(const Value: TPlainSubjects);
+  public
+    constructor Create; override;
+    destructor Destroy; override;
+    property Subjects:TPlainSubjects read FSubjects write SetSubjects;
+  end;
+
+  ////////////////////// x //////////////////////
+  // TKabinet - информация об экземпляре кабинета
+  // FullName(): string; - название кабинета с номером
+  // Assign(Source) - копирование информации о другом кабинете
+  // Num:Integer - номер кабинета
+  // Klasses:TKlasses - классы которые занимаются? в данном кабинете
+  // Teachers:TTeachers - учителя которые преподают в данном кабинете
+  // ShowNum:boolean - показывать ли номер урока в расписании
   TKabinet = class (TRefItem)
   private
     FNum: Integer;
@@ -206,6 +219,18 @@ type
     property ShowNum: boolean read FShowNum write FShowNum;
     property Teachers: TTeachers read FTeachers;
   end;
+  ////////////////////// x //////////////////////
+  // TKabinet - информация об экземпляре кабинета
+  TKabinetEx = class (TKabinet)
+  private
+    FSubjects: TPlainSubjects;
+  published
+  public
+    constructor Create; override;
+    destructor Destroy; override;
+    property Subjects:TPlainSubjects read FSubjects;
+  end;
+
  ////////////////////// x //////////////////////
  // TTeacher - информация об экземпляре учителя
  // Assign(Source) - копирование информации о другом учителе
@@ -226,6 +251,17 @@ type
     property Kabinets: TKabinets read FKabinets;
     property KabNum: Integer read FKabNum write FKabNum;
     property Klasses: TKlasses read FKlasses;
+  end;
+  ////////////////////// x //////////////////////
+  // TTeacherEx - информация об экземпляре учителя
+  TTeacherEx = class (TTeacher)
+  private
+    FSubjects: TPlainSubjects;
+  published
+  public
+    constructor Create; override;
+    destructor Destroy; override;
+    property Subjects:TPlainSubjects read FSubjects;
   end;
  ////////////////////// x //////////////////////
  // TKlasses - коллекция классов
@@ -2864,6 +2900,53 @@ begin
   if OutSide(LessonIndex, LessCount) then
     Exit;
   FSubjInTT[LessonIndex] := Value;
+end;
+
+{ TKlassEx }
+
+constructor TKlassEx.Create;
+begin
+  inherited;
+  FSubjects:=TPlainSubjects.Create(False);
+end;
+
+destructor TKlassEx.Destroy;
+begin
+  FSubjects.Free;
+  inherited;
+end;
+
+procedure TKlassEx.SetSubjects(const Value: TPlainSubjects);
+begin
+  FSubjects := Value;
+end;
+
+{ TTeacherEx }
+
+constructor TTeacherEx.Create;
+begin
+  inherited;
+  FSubjects:=TPlainSubjects.Create(false);
+end;
+
+destructor TTeacherEx.Destroy;
+begin
+  FSubjects.Free;
+  inherited;
+end;
+
+{ TKabinetEx }
+
+constructor TKabinetEx.Create;
+begin
+  inherited;
+  FSubjects:=TPlainSubjects.Create(false);
+end;
+
+destructor TKabinetEx.Destroy;
+begin
+  FSubjects.Free;
+  inherited;
 end;
 
 end.
