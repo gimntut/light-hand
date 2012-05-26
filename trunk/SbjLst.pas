@@ -720,7 +720,7 @@ begin
     if SimpleItem <> nil then
    // и текущая клетка не заблокирована, то запомнить предмет в текущей клетке
       if not SimpleItem.IsLock(CurrentLesson) then
-        sx := SimpleItem.SubjectX;
+        sx := SimpleItem.Subjects;
   // Показать значки пересечений
     case SubjSource.ColumnMode of
       cmKlass:

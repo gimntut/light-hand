@@ -933,10 +933,6 @@ begin
     cmTeacher:
       Item := CurrentTeacher;
   end;
- // Если стобец определён, то добавить список классов
- // этого урока в список чисел
-  if Item <> nil then
-    Ints.Add(Item.TimeTableX[ALesson]);
  // Перебрать все классы
   for I := 0 to Ints.Count - 1 do begin
   // Определить предмет находящийся в текущей классе,
