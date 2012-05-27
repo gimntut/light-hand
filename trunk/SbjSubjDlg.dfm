@@ -54,8 +54,8 @@ inherited SubjectDlg: TSubjectDlg
       object lbHelp: TLabel
         Left = 2
         Top = 2
-        Width = 583
-        Height = 56
+        Width = 3
+        Height = 13
         Align = alClient
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
@@ -65,8 +65,6 @@ inherited SubjectDlg: TSubjectDlg
         ParentFont = False
         Transparent = True
         WordWrap = True
-        ExplicitWidth = 3
-        ExplicitHeight = 13
       end
     end
   end
@@ -346,7 +344,7 @@ inherited SubjectDlg: TSubjectDlg
         Height = 21
         Style = csDropDownList
         Color = 16770790
-        ItemHeight = 13
+        ItemHeight = 0
         TabOrder = 1
         OnEnter = ComponentEnter
         OnExit = ComponentExit

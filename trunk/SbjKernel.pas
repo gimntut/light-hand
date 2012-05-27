@@ -24,7 +24,7 @@ unit sbjKernel;
 
 interface
 
-uses Windows, SysUtils, Classes, Grids, ComCtrls, SbjColl, Dialogs,
+uses Windows, SysUtils, Classes, SbjColl, Dialogs,
   SbjResource, publ, superobject;
 
 type
@@ -372,19 +372,24 @@ type
   end;
  ////////////////////// x //////////////////////
  // TLesson - ***
+  TOnChangeLessonIndex = procedure (Sender: TObject; OldIndex: Integer) of object;
   TLesson = class(TSubject)
   private
     FLessonIndex: Integer;
     FParent: TSubject;
+    FOnChangeLessonIndex: TOnChangeLessonIndex;
     procedure SetLessonIndex(const Value: Integer);
     procedure SetParent(const Value: TSubject);
     function GetKlass: TKlass;
     function GetNameIndex: Integer;
+    procedure SetOnChangeLessonIndex(const Value: TOnChangeLessonIndex);
   public
+    constructor Create(AParent: TSubject; ALessonIndex: Integer); 
     property LessonIndex: Integer read FLessonIndex write SetLessonIndex;
-    property Parent: TSubject read FParent write SetParent;
+    property Parent: TSubject read FParent;
     property Klass:TKlass read GetKlass;
     property NameIndex:Integer read GetNameIndex;
+    property OnChangeLessonIndex:TOnChangeLessonIndex read FOnChangeLessonIndex write SetOnChangeLessonIndex;
   end;
  ////////////////////// x //////////////////////
  // TPlainSubjects - простая коллекция предметов
@@ -401,10 +406,17 @@ type
   TLessons = class (TColl)
     function GetItem(Index: Integer): TLesson;
     procedure SetItem(Index: Integer; const Value: TLesson);
+  private
+    FTimeTable: TTimeTable;
+    FLessonIndex: Integer;
+    procedure ChangeLessonIndex(Sender: TObject; OldIndex: Integer);
   public
-    constructor Create(AutoIndex: boolean);
+    constructor Create(ATimeTable: TTimeTable; ALessonIndex: Integer);
     procedure Assign(Source: TPersistent); override;
+    function CreateLesson(Subject: TSubject): TLesson;
     property Item[Index: Integer]: TLesson read GetItem write SetItem; default;
+    property TimeTable:TTimeTable read FTimeTable;
+    property LessonIndex: Integer read FLessonIndex;
   end;
  ////////////////////// x //////////////////////
  /// TTimeTable - Содержимое сетки расписания
@@ -1588,13 +1600,21 @@ end;
 
 procedure TSubject.SetKlass(const Value: TKlass);
 begin
-  if FKlass <> nil then
-    FKlass.Subjects.Delete(self);
+  if FKlass <> nil then begin
+    if self is TLesson then
+      FKlass.Lessons.Delete(self)
+    else
+      FKlass.Subjects.Delete(self);
+  end;
   FKlass := Value;
   if ItemIndex = -1 then
     Exit;
-  if FKlass <> nil then
-    FKlass.Subjects.Add(self);
+  if FKlass <> nil then begin
+    if self is TLesson then
+      FKlass.Lessons.Add(self)
+    else
+      FKlass.Subjects.Add(self);
+  end;
 end;
 
 procedure TSubject.SetNameIndex(const Value: Integer);
@@ -1907,8 +1927,8 @@ var
   I: Integer;
 begin
   SetLength(Subjs, 0);
-  for I := 0 to LessCount do
-  FLessons[I] := TLessons.Create(True);
+  for I := 0 to LessCount - 1 do
+    FLessons[I] := TLessons.Create(self, I);
 end;
 
 destructor TTimeTable.Destroy;
@@ -1924,7 +1944,6 @@ end;
 procedure TTimeTable.Add(LessonIndex: Integer; Subject: TSubject);
 var
   I: Integer;
-  Lesson: TLesson;
 begin
  // Выйти если нечего добавлять
   if Subject = nil then
@@ -1945,15 +1964,7 @@ begin
     Subject.Teachers[I].IncCross(LessonIndex);
     Subject.Kabinets[I].IncCross(LessonIndex);
   end;
-  Lesson := TLesson.Create(Subject.FNames);
-    /// 28.04.2012
-    /// Ошибка: При создании копии предмета он запоминается, как новый предмет
-    /// в том же классе
-  Продолжить работу с этого места;
-  Lesson.Assign(Subject);
-  Lesson.Parent := Subject;
-  Lesson.LessonIndex := LessonIndex;
-  FLessons[LessonIndex].Add(Lesson);
+  FLessons[LessonIndex].CreateLesson(Subject);
 end;
 
 procedure TTimeTable.Delete(LessonIndex: Integer; Kabinet: TKabinet);
@@ -1975,10 +1986,11 @@ var
 begin
   if Subject = nil then
     Exit;
+  Lesson := nil; 
   for I := 0 to Lessons[LessonIndex].Count - 1 do
     if Lessons[LessonIndex][I].Parent = Subject then
       Lesson := Lessons[LessonIndex][I];
-  Delete(LessonIndex,Lesson);
+  Delete(LessonIndex, Lesson);
 end;
 
 procedure TTimeTable.Delete(LessonIndex: Integer; Teacher: TTeacher);
@@ -2486,7 +2498,7 @@ begin
  // Все проверки и учёт пересечений делаются потом.
  //////////////////////////////////////////////////
  // Текст процедуры изменению не подлежит
-  Result := TSubject.Create(fSubjectNames);
+  Result := TSubject.Create(FSubjectNames);
   Add(Result);
 end;
 
@@ -2734,6 +2746,13 @@ end;
 
 { TLesson }
 
+constructor TLesson.Create(AParent: TSubject; ALessonIndex: Integer);
+begin
+  inherited Create(nil);
+  SetParent(AParent);
+  LessonIndex := ALessonIndex;
+end;
+
 function TLesson.GetKlass: TKlass;
 begin
   Result := inherited Klass;
@@ -2749,9 +2768,18 @@ begin
   FLessonIndex := Value;
 end;
 
+procedure TLesson.SetOnChangeLessonIndex(const Value: TOnChangeLessonIndex);
+begin
+  FOnChangeLessonIndex := Value;
+end;
+
 procedure TLesson.SetParent(const Value: TSubject);
 begin
   if FParent<>nil then FParent.Subjects.Delete(self);
+    /// 28.04.2012
+    /// Ошибка: При создании копии предмета он запоминается, как новый предмет
+    /// в том же классе
+  Assign(Value);
   FParent := Value;
   if Value = nil then
     Exit;
@@ -2763,14 +2791,35 @@ end;
 { TLessons }
 
 procedure TLessons.Assign(Source: TPersistent);
+var
+  Subs: TPlainSubjects;
+  I: Integer;
 begin
-  inherited;
-
+  Clear(false);
+  if Source is TPlainSubjects then begin
+    Subs := TPlainSubjects(Source);
+    for I := 0 to Subs.Count - 1 do
+      Add(Subs[I]);
+  end
+  else
+    inherited;
 end;
 
-constructor TLessons.Create(AutoIndex: boolean);
+procedure TLessons.ChangeLessonIndex(Sender: TObject; OldIndex: Integer);
 begin
+  { TODO -oГимаев Наиль -cВажно : Нужно добавить реализацию }
+end;
 
+constructor TLessons.Create(ATimeTable: TTimeTable; ALessonIndex: Integer);
+begin
+  inherited Create(true);
+end;
+
+function TLessons.CreateLesson(Subject: TSubject): TLesson;
+begin
+  Result:=TLesson.Create(Subject,LessonIndex);
+  Result.OnChangeLessonIndex:=ChangeLessonIndex;
+  Add(Result);
 end;
 
 function TLessons.GetItem(Index: Integer): TLesson;
