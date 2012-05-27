@@ -132,6 +132,7 @@ type
     procedure _Insert(Sender: TObject; TypeOfSubj: TTypeOfData);
     procedure ChangeKabinet(Kabinet: TKabinet);
     procedure ChangeSubject(Subject: TSubject);
+    procedure ChangeLesson(Lesson: TLesson);
     procedure ChangeTeacher(Teacher: TTeacher);
     procedure CreateKabinet;
     procedure CreateSubject;
@@ -447,7 +448,8 @@ begin
           IndexOfChangeKlass := cbKlass.ItemIndex;
           if IndexOfChangeKlass = -1 then
             Exit;
-          edKlass.SetFocus;
+          if edKlass.Enabled then
+            edKlass.SetFocus;
         end;
   end;
 end;
@@ -503,7 +505,8 @@ begin
       if Sender is TSubjectDlg then
         with SubjectDlg do begin
           IndexOfChangeKlass := -1;
-          edKlass.SetFocus;
+          if edKlass.Enabled then
+            edKlass.SetFocus;
         end;
     todName:
       if Sender is TSubjectDlg then
@@ -674,7 +677,8 @@ procedure TSubjSource.KlassClick(Sender: TObject);
 begin
   with SubjectDlg do begin
     KlassChangeGood := true;
-    cbKlass.SetFocus;
+    if cbKlass.Enabled then
+      cbKlass.SetFocus;
   end;
 end;
 
@@ -720,7 +724,8 @@ begin
       vk_Escape:
       begin
         KlassChangeGood := false;
-        cbKlass.SetFocus;
+        if cbKlass.Enabled then
+          cbKlass.SetFocus;
       end;
     end;
 end;
@@ -990,6 +995,9 @@ begin
   if Item is TSubject then
     ChangeSubject(TSubject(Item))
   else
+  if Item is TLesson then
+    ChangeSubject(TLesson(Item))
+  else
   if Item is TTeacher then
     ChangeTeacher(TTeacher(Item))
   else
@@ -1001,6 +1009,17 @@ procedure TSubjSource.ChangeKlass(Klass: TKlass; s: string);
 begin
   Klass.Name := s;
   NotifyLink(seChangeKlasses, Klass.ItemIndex);
+end;
+
+procedure TSubjSource.ChangeLesson(Lesson: TLesson);
+begin
+  if Lesson = nil then
+    Exit;
+  InitSubjDlg;
+  if SubjectDlg.Execute(Lesson, nil) then begin
+    Lesson.Assign(SubjectDlg.Subject);
+    NotifyLink(seChangeSubjects, Lesson.ItemIndex);
+  end;
 end;
 
 procedure TSubjSource.CheckUp(Item: TCollItem);

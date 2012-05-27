@@ -98,7 +98,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     property Subject: TSubject read GetSubject;
-    function Execute(Subj: TSubject; Current: TSimpleItem): boolean;
+    function Execute(ASubject: TSubject; Current: TSimpleItem): boolean;
     property OnInsert: TInsertEvent read FOnInsert write FOnInsert;
     property OnChange: TChangeEvent read FOnChange write FOnChange;
     property OnDelete: TChangeEvent read FOnDelete write FOnDelete;
@@ -164,10 +164,11 @@ begin
   inherited;
 end;
 
-function TSubjectDlg.Execute(Subj: TSubject; Current: TSimpleItem): boolean;
+function TSubjectDlg.Execute(ASubject: TSubject; Current: TSimpleItem): boolean;
 var
   s: string;
   i: integer;
+  us: Boolean;
 begin
   Curr := Current;
   with sgTeachKab do begin
@@ -181,7 +182,7 @@ begin
   sgTeachKab.ComboCol[0] := stsTeacher;
   TodGetList(todKabinet, false, stsKabinet);
   sgTeachKab.ComboCol[1] := stsKabinet;
-  if Subj = nil then begin
+  if ASubject = nil then begin
     Caption := TitleNewSubj;
     cbKlass.Text := '';
     edLongName.text := '';
@@ -191,27 +192,37 @@ begin
   end
   else begin
     Caption := TitleChangeSubj;
-    if Subj.Klass = nil then
+    if ASubject.Klass = nil then
       cbKlass.Text := ''
     else
-      cbKlass.itemindex := Subj.Klass.ItemIndex;
-    edLongName.text := Subj.LongName;
-    edShortName.text := Subj.ShortName;
-    edTime.Text := IntToStr(Subj.LessonAtWeek);
-    edSanPin.Text := IntToStr(Subj.SanPIN);
-    for i := 0 to Subj.TeacherCount - 1 do begin
-      sgTeachKab.ToCell(0, i + 1, Subj.Teachers[i].Name, Subj.Teachers[i]);
-      sgTeachKab.ToCell(1, i + 1, Subj.Kabinets[i].Name, Subj.Kabinets[i]);
+      cbKlass.itemindex := ASubject.Klass.ItemIndex;
+    edLongName.text := ASubject.LongName;
+    edShortName.text := ASubject.ShortName;
+    edTime.Text := IntToStr(ASubject.LessonAtWeek);
+    edSanPin.Text := IntToStr(ASubject.SanPIN);
+    for i := 0 to ASubject.TeacherCount - 1 do begin
+      sgTeachKab.ToCell(0, i + 1, ASubject.Teachers[i].Name, ASubject.Teachers[i]);
+      sgTeachKab.ToCell(1, i + 1, ASubject.Kabinets[i].Name, ASubject.Kabinets[i]);
     end;
   end;
   sgTeachKab.Col := 0;
-  if Current is TKlass then begin
-    ActiveControl := edLongName;
-    s := TKlass(Current).Name;
-    cbKlass.ItemIndex := cbKlass.items.IndexOf(s);
+  us:=not (ASubject is TLesson);
+  cbKlass.Enabled:=us;
+  edKlass.Enabled:=us;
+  edSanPin.Enabled:=us;
+  edLongName.Enabled:=us;
+  edShortName.Enabled:=us;
+  edTime.Enabled:=us;
+  if us then begin
+    if Current is TKlass then begin
+      ActiveControl := edLongName;
+      s := TKlass(Current).Name;
+      cbKlass.ItemIndex := cbKlass.items.IndexOf(s);
+    end
+    else
+      ActiveControl := cbKlass;
   end
-  else
-    ActiveControl := cbKlass;
+  else ActiveControl := sgTeachKab;
   if Current is TTeacher then
     with sgTeachKab do begin
       s := TTeacher(Current).Name;
@@ -224,10 +235,13 @@ begin
       Cells[0, 1] := NoTeacher;
       ToCell(1, 1, s, Current);
     end;
+  // Модальный вызов
   result := inherited Execute;
+  // Обработка результа вызова
   if not result then
     Exit;
-  with fSubject do begin
+  FSubject.Assign(ASubject);
+  with FSubject do begin
     while TeacherCount > 0 do
       Delete(0);
     TodInsert(todName);
@@ -530,7 +544,8 @@ begin
     result := TEdit(ed).Text = '';
   if not Result then
     Exit;
-  ed.SetFocus;
+  if ed.Enabled then
+    ed.SetFocus;
   case ed.tag of
     1:
       s := WarnKlass;
@@ -547,7 +562,7 @@ begin
   result := nil;
   if ModalResult <> mrOk then
     Exit;
-  result := fSubject;
+  result := FSubject;
 end;
 
 procedure TSubjectDlg.FormClose(Sender: TObject; var Action: TCloseAction);

@@ -2207,6 +2207,7 @@ var
   L: Integer;
 begin
   Ind := -1;
+  Result:=False;
   if MaxInd=-1 then Exit;
   Result := FindX(Num, l);
   if (l >= 0) and (l <= MaxInd) then
