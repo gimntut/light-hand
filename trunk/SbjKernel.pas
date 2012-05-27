@@ -1691,6 +1691,7 @@ begin
       self.LessonAtWeek := LessonAtWeek;
       self.Complexion := Complexion;
       self.NameIndex := NameIndex;
+      self.FNames:=TSubject(Source).FNames;
     end
   else
     inherited Assign(Source);
@@ -1853,15 +1854,9 @@ begin
   for I := 0 to Lessons[LessonIndex].Count - 1 do begin
     if Lessons[LessonIndex][I].Klass.ItemIndex <> KlassIndex then
       Continue;
-    if Lessons[LessonIndex][I].LessonIndex <> LessonIndex then
-      Continue;
     Result := Lessons[LessonIndex][I];
     break;
   end;
-//  Klass := Subjects.Klasses[KlassIndex];
-//  if Klass = nil then
-//    Exit;
-//  Result := Klass.LessAbs[LessonIndex];
 end;
 
 function TTimeTable.GetKlasses: TKlasses;
@@ -2072,7 +2067,7 @@ var
   Key: string;
   Kabinet: TKabinet;
 begin
-  ms := TMemoryStream.create;
+  ms := TMemoryStream.Create;
   p := sr.Position;
   Load(sr, Key, TStream(ms));
   Result := Key = 'Кабинеты';
@@ -2257,7 +2252,7 @@ var
   xr: TCross;
   b: Boolean;
 begin
-  ms := TMemoryStream.create;
+  ms := TMemoryStream.Create;
   with Kabinets do begin
     I := Count - 1;
     ms.Write(I, 4);

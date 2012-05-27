@@ -1014,19 +1014,19 @@ end;
 procedure TSubjGrid.OutTimeTableKlasses;
 var
   wi: TWeekDay;
-  i, j1, j2, n, m: Integer;
+  I, J1, J2, N, M: Integer;
   CurCol: Integer;
-  sbj: TSubject;
+  Sbj: TSubject;
   s: string;
 begin
   // todo: Исправить вывод данных в сетку расписания
-  n := 1;
-  for i := 0 to SubjSource.Klasses.Count - 1 do
-    if SubjSource.Klasses[i].Checked then
-      inc(n);
-  ColCount := Max(n, 2);
+  N := 1;
+  for I := 0 to SubjSource.Klasses.Count - 1 do
+    if SubjSource.Klasses[I].Checked then
+      inc(N);
+  ColCount := Max(N, 2);
   FixedRows := 2;
-  if n = 1 then begin
+  if N = 1 then begin
     Cells[0, 0] := 'Нет';
     Cells[1, 0] := 'классов';
     Headers[1] := nil;
@@ -1034,35 +1034,35 @@ begin
     Exit;
   end;
   Panel.Visible := true;
-  n := 1;
+  N := 1;
   CurCol := -1;
-  for i := 0 to SubjSource.Klasses.Count - 1 do
+  for I := 0 to SubjSource.Klasses.Count - 1 do
     with SubjSource do
-      if Klasses[i].Checked then begin
-        ColWidths[n] := FKlassColWidth;
+      if Klasses[I].Checked then begin
+        ColWidths[N] := FKlassColWidth;
         InitMainLayer;
-        Cells[n, 0] := Klasses.FullKlassName[i];
-        Headers[n] := Klasses[i];
+        Cells[N, 0] := Klasses.FullKlassName[I];
+        Headers[N] := Klasses[I];
         if CurrentKlass <> nil then
-          if Headers[n] = CurrentKlass then
-            CurCol := n;
-        m := 1;
+          if Headers[N] = CurrentKlass then
+            CurCol := N;
+        M := 1;
         for wi := wdMonday to wdSunday do
-          for j2 := 0 to 10 do
-            if (j2 in Lessons) and (wi in WeekDays) then begin
-              inc(m);
-              j1 := ord(wi) * 11 + j2;
-              sbj := TimeTable.ForKlasses[i, j1];
-              if sbj = nil then
+          for J2 := 0 to 10 do
+            if (J2 in Lessons) and (wi in WeekDays) then begin
+              inc(M);
+              J1 := ord(wi) * 11 + J2;
+              Sbj := TimeTable.ForKlasses[I, J1];
+              if Sbj = nil then
                 s := ''
               else
-              if FullView or IsCross(CurrentSubject, sbj) then
-                s := sbj.Title[FTableContent]
+              if FullView or IsCross(CurrentSubject, Sbj) then
+                s := Sbj.Title[FTableContent]
               else
                 s := '~~~~~';
-              Cells[n, m] := s;
+              Cells[N, M] := s;
             end;
-        inc(n);
+        inc(N);
       end;
   if SubjSource.CurrentKlass = nil then
     SelectCell(1, 1)
@@ -1073,17 +1073,17 @@ end;
 
 procedure TSubjGrid.OutTimeTableTeachers;
 var
-  wi: TWeekDay;
-  i, j1, j2, n, m: Integer;
+  WI: TWeekDay;
+  I, J1, J2, N, M: Integer;
   CurCol: Integer;
 begin
   with SubjSource do begin
-    n := 1;
-    for i := 0 to Teachers.Count - 1 do
-      if Teachers[i].Checked then
-        inc(n);
-    ColCount := Max(n, 2);
-    if n = 1 then begin
+    N := 1;
+    for I := 0 to Teachers.Count - 1 do
+      if Teachers[I].Checked then
+        inc(N);
+    ColCount := Max(N, 2);
+    if N = 1 then begin
       Cells[0, 0] := 'Нет';
       Cells[1, 0] := 'учителей';
       Headers[1] := nil;
@@ -1092,25 +1092,25 @@ begin
     end;
     Panel.Visible := true;
     FixedRows := 1;
-    n := 1;
+    N := 1;
     CurCol := -1;
-    for i := 0 to Teachers.Count - 1 do
-      if Teachers[i].Checked then begin
-        ColWidths[n] := FTeacherColWidth;
+    for I := 0 to Teachers.Count - 1 do
+      if Teachers[I].Checked then begin
+        ColWidths[N] := FTeacherColWidth;
         InitMainLayer;
-        Cells[n, 0] := Teachers[i].ShortName;
-        Headers[n] := Teachers[i];
-        if Headers[n] = SubjSource.CurrentTeacher then
-          CurCol := n;
-        m := 0;
-        for wi := wdMonday to wdSunday do
-          for j2 := 0 to 10 do
-            if (j2 in Lessons) and (wi in WeekDays) then begin
-              inc(m);
-              j1 := ord(wi) * 11 + j2;
-              Cells[n, m] := To3String(TimeTable.ForTeacher[i, j1]);
+        Cells[N, 0] := Teachers[I].ShortName;
+        Headers[N] := Teachers[I];
+        if Headers[N] = SubjSource.CurrentTeacher then
+          CurCol := N;
+        M := 0;
+        for WI := wdMonday to wdSunday do
+          for J2 := 0 to 10 do
+            if (J2 in Lessons) and (WI in WeekDays) then begin
+              inc(M);
+              J1 := ord(WI) * 11 + J2;
+              Cells[N, M] := To3String(TimeTable.ForTeacher[I, J1]);
             end;
-        inc(n);
+        inc(N);
       end;
   end;
   if SubjSource.CurrentTeacher = nil then
