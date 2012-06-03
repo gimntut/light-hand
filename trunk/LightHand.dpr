@@ -16,7 +16,8 @@ uses
   PublGraph in 'MyLib\PublGraph.pas',
   PublMath in 'MyLib\PublMath.pas',
   UQPixels in 'MyLib\UQPixels.pas',
-  uPagePanel in 'MyLib\uPagePanel.pas';
+  uPagePanel in 'MyLib\uPagePanel.pas',
+  ViewLog in 'MyLib\ViewLog.pas' {LogWindow};
 
 {$R *.res}
 

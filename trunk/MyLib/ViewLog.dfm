@@ -1,9 +1,9 @@
 object LogWindow: TLogWindow
   Left = 261
   Top = 259
-  Width = 487
-  Height = 309
   Caption = #1057#1086#1089#1090#1086#1103#1085#1080#1077' '#1087#1088#1086#1075#1088#1072#1084#1084#1099
+  ClientHeight = 275
+  ClientWidth = 479
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -22,12 +22,13 @@ object LogWindow: TLogWindow
     Height = 13
     Align = alTop
     Layout = tlCenter
+    ExplicitWidth = 3
   end
   object Memo1: TMemo
     Left = 0
     Top = 38
     Width = 479
-    Height = 244
+    Height = 237
     Align = alClient
     Font.Charset = RUSSIAN_CHARSET
     Font.Color = clWindowText
@@ -46,7 +47,6 @@ object LogWindow: TLogWindow
     Height = 25
     ButtonHeight = 23
     Caption = 'ToolBar1'
-    Flat = True
     Images = ImageList1
     TabOrder = 1
     object ToolButton1: TToolButton

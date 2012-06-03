@@ -123,7 +123,7 @@
 			<Directories Name="UnitOutputDir">.\DCU</Directories>
 			<Directories Name="PackageDLLOutputDir"></Directories>
 			<Directories Name="PackageDCPOutputDir"></Directories>
-			<Directories Name="SearchPath">$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;$(delphi)\lib\debug;$(DELPHI)\Lib\Debug;$(DELPHI)\Source\ToolsAPI</Directories>
+			<Directories Name="SearchPath">$(BDS)\lib\Debug;$(BDS)\Lib\Debug\Indy10;$(delphi)\lib\debug;$(DELPHI)\Lib\Debug;$(DELPHI)\Source\ToolsAPI;..\MyLib</Directories>
 			<Directories Name="Packages">VCL40;VCLX40;VCLDB40;VCLSMP40;QRPT40;vcl;rtl;dbrtl;vclactnband;vclx;bdertl;VclSmp;PublDpk</Directories>
 			<Directories Name="Conditionals"></Directories>
 			<Directories Name="DebugSourceDirs"></Directories>
@@ -145,12 +145,12 @@
 			<Language Name="RootDir"></Language>
 		</Language>
 		<VersionInfo>
-			<VersionInfo Name="IncludeVerInfo">False</VersionInfo>
-			<VersionInfo Name="AutoIncBuild">False</VersionInfo>
+			<VersionInfo Name="IncludeVerInfo">True</VersionInfo>
+			<VersionInfo Name="AutoIncBuild">True</VersionInfo>
 			<VersionInfo Name="MajorVer">0</VersionInfo>
 			<VersionInfo Name="MinorVer">5</VersionInfo>
 			<VersionInfo Name="Release">0</VersionInfo>
-			<VersionInfo Name="Build">0</VersionInfo>
+			<VersionInfo Name="Build">16</VersionInfo>
 			<VersionInfo Name="Debug">False</VersionInfo>
 			<VersionInfo Name="PreRelease">False</VersionInfo>
 			<VersionInfo Name="Special">False</VersionInfo>
@@ -160,13 +160,13 @@
 			<VersionInfo Name="CodePage">1251</VersionInfo>
 		</VersionInfo>
 		<VersionInfoKeys>
-			<VersionInfoKeys Name="CompanyName">Gimaev Company</VersionInfoKeys>
+			<VersionInfoKeys Name="CompanyName">GiN</VersionInfoKeys>
 			<VersionInfoKeys Name="FileDescription">Помощник завуча</VersionInfoKeys>
-			<VersionInfoKeys Name="FileVersion">0.5.0.0</VersionInfoKeys>
+			<VersionInfoKeys Name="FileVersion">0.5.0.16</VersionInfoKeys>
 			<VersionInfoKeys Name="InternalName">Расписание</VersionInfoKeys>
 			<VersionInfoKeys Name="LegalCopyright">Все права на изменение и распространение пренадлежат Гимаеву Н.Д.</VersionInfoKeys>
-			<VersionInfoKeys Name="LegalTrademarks">Gimaev Company</VersionInfoKeys>
-			<VersionInfoKeys Name="OriginalFilename">rasp001</VersionInfoKeys>
+			<VersionInfoKeys Name="LegalTrademarks"></VersionInfoKeys>
+			<VersionInfoKeys Name="OriginalFilename">LightHand.exe</VersionInfoKeys>
 			<VersionInfoKeys Name="ProductName">Расписание вручную</VersionInfoKeys>
 			<VersionInfoKeys Name="ProductVersion">0.5.0.0</VersionInfoKeys>
 			<VersionInfoKeys Name="Comments">Составляйте расписание как прежде, а программа не даст Вам ошибиться</VersionInfoKeys>
