@@ -232,7 +232,7 @@ object TableForm: TTableForm
     Width = 597
     Height = 580
     Colors.Cross = 15636464
-    Colors.Fixed = 16752029
+    Colors.Fixed = 12085023
     Colors.FullView = clLime
     Colors.Main = clSkyBlue
     Colors.NotFullView = clRed

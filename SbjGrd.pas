@@ -65,8 +65,9 @@ type
   TSubjGrid = class (TCustomDrawGrid)
   private
     bmIcons: TBitmap;
-    //btnFullView: TSpeedButton;
+    btnFullView: TSpeedButton;
     //btnTC: TSpeedButton;
+    imgBackGround: TImage;
     imgFullView: TImage;
     CellLayer: TBitMap;
     ComboBox: TComboBox;
@@ -90,7 +91,6 @@ type
     Tik: Integer;
     TikCount: Integer;
     Timer: TTimer;
-    SpeedButtonPaintCount: Integer;
     //IsMistakes:boolean;
     /////////////////// GetSetProperty ///////////////////
     function GetCells(ACol, ARow: Integer): string;
@@ -129,15 +129,18 @@ type
     procedure CheckLesson(Sender: TObject; LessonIndex: Integer);
     procedure CheckTeacher(Sender: TObject; TeacherIndex: Integer);
     procedure CheckWeekDay(Sender: TObject; WeekDayIndex: Integer);
+    procedure Refresh(Sender: TObject);
     /////////////////// Other Events //////////////
     procedure ImageClick(Sender: TObject);
+    procedure ChangeColor(Sender: TObject; iks: Tx; AColor: TColor);
+    procedure FullViewClick(Sender: TObject);
+    procedure PopupClick(Sender: TObject);
+    procedure TikTimer(Sender: TObject);
     /////////////////// Another ///////////////////
     function LastLessonIn(ARow: Integer): boolean;
     function RowToLesson(ARow: Integer): Integer;
     function To3String(Subs: TSubs): String;
-    procedure ChangeColor(Sender: TObject; iks: Tx; AColor: TColor);
     procedure FillIcon(Glyph: TBitmap; index: Integer);
-    procedure FullViewClick(Sender: TObject);
     procedure InitPopup;
     procedure InitSubjLink;
     procedure OutTimeTable;
@@ -145,14 +148,11 @@ type
     procedure OutTimeTableKlasses;
     procedure OutTimeTableTeachers;
     procedure Plato(ARect: TRect);
-    procedure PopupClick(Sender: TObject);
     procedure RedrawCell(ACol, ARow: Integer);
     procedure RedrawCells;
     procedure RedrawCol(ACol: Integer);
     procedure RedrawFixed;
     procedure RedrawRow(ARow: Integer);
-    procedure Refresh(Sender: TObject);
-    procedure TikTimer(Sender: TObject);
     procedure WMChar(var Msg: TWMChar); message WM_CHAR;
   /////////////////// Layers ///////////////////
     procedure BorderLayer(ACol, ARow: Integer);
@@ -171,6 +171,13 @@ type
     procedure RedrawLayers; overload;
     procedure SanPin(ACol, ARow: Integer);
     procedure FixedLayer(ACol, ARow: Integer);
+    procedure CreatePanelBackground;
+    procedure CreateButtons;
+    procedure ChangeBackgroundOfPanel;
+    procedure CreatePanel;
+    procedure CreateIcon;
+    procedure CreatePopup;
+    procedure CreateTimer;
   protected
     function SelectCell(ACol, ARow: Longint): Boolean; override;
     procedure _Test;
@@ -285,8 +292,8 @@ end;
 {protected}
 procedure TGridColors.DoChange(iks: Tx; Color: TColor);
 begin
-  if Assigned(fonChange) then
-    fonChange(self, iks, Color);
+  if Assigned(FOnChange) then
+    FOnChange(self, iks, Color);
 end;
 
 {public}
@@ -406,7 +413,7 @@ var
 begin
  // Если произошёл выход за бока экранной сеткм - выход
   if (ACol < 0) or (ACol > ColCount - 1) then
-    Exit;                                  
+    Exit;
  // Если произошёл выход за верх-низ экранной сетки - выход
   if (ARow < 0) or (ARow > RowCount - 1) or (ARow > LessCount) then
     Exit;
@@ -417,7 +424,7 @@ begin
  // Если в ячейке уже есть эти данные - выход
   if FCells[ACol, Lesson] = Value then
     Exit;
- // Зопомнить количество многострочных клеток
+ // Запомнить количество многострочных клеток
   l := length(Mults);
  // Перебрать их все
   for i := 0 to l - 1 do
@@ -464,7 +471,7 @@ procedure TSubjGrid.SetFullView(const Value: Boolean);
 begin
   FFullView := Value;
   OutTimeTable;
-  // BtnFullView.Down := Not Value and (ColCount > 2) and (RowCount > 2);
+  BtnFullView.Down := Not Value and (ColCount > 2) and (RowCount > 2);
   // todo: Нарисовать "кнопку"
   RedrawCell(Col, Row);
 end;
@@ -528,7 +535,7 @@ begin
   else
     x := -1;
   end;
-  // FillIcon(btnTC.Glyph, x);
+//  FillIcon(btnTC.Glyph, x);
   FillIcon(imgFullView.Picture.Bitmap, x);
   OutTimeTable;
 end;
@@ -791,8 +798,9 @@ begin
     xFixed:
     begin
       RedrawLayers(ltFixed);
-      Panel.Color := AColor;
+      // Panel.Color := AColor;
       FixedColor := AColor;
+      ChangeBackgroundOfPanel;
     end;
     xMain:
     begin
@@ -1607,10 +1615,9 @@ begin
       cmKlass:
       begin
         kl := TKlass(Headers[ACol]);
-        if kl <> nil then begin
-          // 25.04.2012 old -> CurrentSubject := kl.LessAbs[cl];
-          CurrentSubject := TimeTable.ForKlasses[kl.ItemIndex, cl];  
-        end;
+        if kl <> nil then
+          CurrentSubject := TimeTable.ForKlasses[kl.ItemIndex, cl]// 25.04.2012 old -> CurrentSubject := kl.LessAbs[cl];
+        ;
         CurrentKlass := kl;
       end;
       cmTeacher:
@@ -1639,10 +1646,8 @@ var
   slt: TLayerTypeSet;
   lay: TBitMap;
 begin
-  if SpeedButtonPaintCount > 0 then begin
-    dec(SpeedButtonPaintCount);
+  if ACol + ARow = 0 then
     Exit;
-  end;
   if (ACol > 0) and (ARect.Left = 0) then
     Exit;
   if (ARow > 0) and (ARect.Top = 0) then
@@ -1704,11 +1709,6 @@ begin
     with ARect.TopLeft do
       Draw(x, y, CellLayer);
   end;
- // todo: Перерисовать "кнопки" в сетке
-  if (ACol = 0) and (ARow = 0) then begin
-    // btnTC.Invalidate;
-    // btnFullView.Invalidate;
-  end;
 end;
 
 procedure TSubjGrid.KeyPress(var Key: Char);
@@ -1744,17 +1744,15 @@ begin
           end;
           RedrawCell(Col, Row);
         end;
-        VK_F2: begin
+        VK_F2:
           case ColumnMode of
             cmKlass:
-              Change(TimeTable.ForKlasses[CurrentKlass.ItemIndex,ls]);
+              Change(TimeTable.ForKlasses[CurrentKlass.ItemIndex, ls]);
             cmTeacher:
-              Change(TimeTable.ForTeacher[CurrentTeacher.ItemIndex,ls][0]);
+              Change(TimeTable.ForTeacher[CurrentTeacher.ItemIndex, ls][0]);
             cmKabinet:
-              Change(TimeTable.ForKabinet[CurrentKabinet.ItemIndex,ls][0]);
+              Change(TimeTable.ForKabinet[CurrentKabinet.ItemIndex, ls][0]);
           end;
-
-        end;
       end;
 end;
 
@@ -1779,63 +1777,15 @@ begin
   DefaultRowHeight := 18;
   DefaultDrawing := false;
   RowHeights[0] := 21;
-  Timer := TTimer.Create(Self);
-  Timer.onTimer := TikTimer;
-  Timer.Interval := 200;
+  CreateTimer;
   Tik := 0;
   TikCount := 20;
   FViewText := true;
-  bmIcons := TBitMap.Create;
-  bmIcons.LoadFromResourceName(HInstance, 'Main');
-  bmIcons.Transparent := true;
-  Panel := TPanel.Create(self);
-  with Panel do begin
-    BoundsRect := Rect(0, 0, 46, 21);
-    BevelOuter := bvNone;
-    Color := FixedColor;
-    if 1 = 1 then
-      Parent := Self
-    else begin
-      Left := Self.Left;
-      Top := Self.Top;
-      Parent := Self.Parent;
-      Caption := 'Текст'; {Отладка. Удалить}
-      BringToFront;
-    end;
-  end;
-  Popup := TPopupMenu.Create(self);
-  InitPopup;
-//  btnTC := TSpeedButton.Create(self);
-//  with btnTC do begin
-//    FillIcon(Glyph, 0);
-//    Flat := true;
-//    BoundsRect := Rect(1, 0, 22, 21);
-//    parent := Panel;
-//    onClick := TCClick;
-//    Visible := false;
-//  end;
-//  btnFullView := TSpeedButton.Create(self);
-//  with btnFullView do begin
-//    Flat := true;
-//    BoundsRect := Rect(24, 0, 45, 21);
-//    parent := Panel;
-//    Glyph.LoadFromResourceName(HInstance, 'eye');
-//    NumGlyphs := 4;
-//    GroupIndex := 1;
-//    AllowAllUp := true;
-//    onClick := FullViewClick;
-//    Visible := false;
-//  end;
-
-  imgFullView := TImage.Create(Self);
-  imgFullView.BoundsRect := Rect(3, 3, 18, 18);
-  FillIcon(imgFullView.Picture.Bitmap, 0);
-  imgFullView.Transparent := true;
-  imgFullView.PopupMenu := Popup;
-  imgFullView.Hint := 'OK';
-  imgFullView.OnClick := ImageClick;
-  imgFullView.ShowHint := true;
-  imgFullView.Parent := Panel;
+  CreateIcon;
+  CreatePanel;
+  CreatePopup;
+  CreatePanelBackground;
+  CreateButtons;
 
   FColors := TGridColors.Create;
   FKlassColWidth := 70;
@@ -1861,6 +1811,98 @@ begin
   bmIcons.Free;
   DestroyLayerBitMaps;
   inherited;
+end;
+
+procedure TSubjGrid.CreateTimer;
+begin
+  Timer := TTimer.Create(Self);
+  Timer.onTimer := TikTimer;
+  Timer.Interval := 200;
+end;
+
+procedure TSubjGrid.CreatePopup;
+begin
+  Popup := TPopupMenu.Create(self);
+  InitPopup;
+end;
+
+procedure TSubjGrid.CreateIcon;
+begin
+  bmIcons := TBitMap.Create;
+  bmIcons.LoadFromResourceName(HInstance, 'Main');
+  bmIcons.Transparent := true;
+end;
+
+procedure TSubjGrid.CreatePanel;
+begin
+  Panel := TPanel.Create(self);
+  with Panel do begin
+    BoundsRect := Rect(0, 0, 46, 21);
+    BevelOuter := bvNone;
+    Color := FixedColor;
+    Color := clBlack;
+    if 1 = 1 then
+      Parent := Self
+    else begin
+      Left := Self.Left;
+      Top := Self.Top;
+      Parent := Self.Parent;
+      Caption := 'Текст';
+      {Отладка. Удалить}
+      BringToFront;
+    end;
+  end;
+end;
+
+procedure TSubjGrid.ChangeBackgroundOfPanel;
+begin
+  imgBackGround.Canvas.Brush.Color := FixedColor;
+  imgBackGround.Canvas.Pen.Color := FixedColor;
+  imgBackGround.Canvas.Rectangle(imgBackGround.ClientRect);
+end;
+
+procedure TSubjGrid.CreateButtons;
+begin
+  imgFullView := TImage.Create(Self);
+  imgFullView.BoundsRect := Rect(3, 3, 18, 18);
+  FillIcon(imgFullView.Picture.Bitmap, 0);
+  imgFullView.Transparent := true;
+  imgFullView.PopupMenu := Popup;
+  imgFullView.Hint := 'OK';
+  imgFullView.OnClick := ImageClick;
+  imgFullView.ShowHint := true;
+  imgFullView.Parent := Panel;
+
+  btnFullView := TSpeedButton.Create(self);
+  with btnFullView do begin
+    Flat := False;
+    BoundsRect := Rect(24, 0, 45, 21);
+    parent := Panel;
+    Glyph.LoadFromResourceName(HInstance, 'eye');
+    NumGlyphs := 4;
+    GroupIndex := 1;
+    AllowAllUp := True;
+    OnClick := FullViewClick;
+    Visible := True;
+  end;
+
+//    btnTC := TSpeedButton.Create(self);
+//    with btnTC do begin
+//      FillIcon(Glyph, 0);
+//      Flat := true;
+//      BoundsRect := Rect(1, 0, 22, 21);
+//      parent := Panel;
+//      onClick := TCClick;
+//      Visible := false;
+//    end;
+end;
+
+procedure TSubjGrid.CreatePanelBackground;
+begin
+  imgBackGround := TImage.Create(Self);
+  imgBackGround.Align := alClient;
+  imgBackGround.Parent := Panel;
+  ChangeBackgroundOfPanel;
 end;
 
 procedure TSubjGrid.FixedLayer(ACol, ARow: Integer);

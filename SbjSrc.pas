@@ -2,7 +2,7 @@ unit SbjSrc;
 
 interface
 
-uses SbjColl, Classes, SbjKernel, SbjResource;
+uses SbjColl, Classes, SbjKernel, SbjResource, ViewLog;
 
 type
  ////////////////////// Enums //////////////////////
@@ -911,7 +911,7 @@ end;
 function TSubjSource.StateOf(ASubject: TSubject; ALesson: Integer): TSubjState;
 var
   I: integer;
-  Sbj: TSubject;
+  Sbj: TLesson;
   Item: TRefItem;
   Ints: TIntegers;
 begin
@@ -956,9 +956,9 @@ begin
  // ѕеребрать уроки
   for I := 0 to LessonCount - 1 do
   // ≈сли дл€ одного из уроков есть предмет,
-  // то поставить его в сетку расписани€
+  // то вернуть его в сетку расписани€
     if Ints.Objects[I] <> nil then
-      TimeTable.Add(ALesson, TSubject(Ints.Objects[I]));
+      TimeTable.Add(ALesson, TLesson(Ints.Objects[I]));
   Ints.Free;
 end;
 

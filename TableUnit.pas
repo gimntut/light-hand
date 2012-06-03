@@ -100,7 +100,7 @@ var
 
 implementation
 
-uses SbjColl, publ, Servis;
+uses SbjColl, publ, Servis, superobject;
 
 {$R *.dfm}
 
@@ -135,9 +135,15 @@ begin
 end;
 
 procedure TTableForm.FormDestroy(Sender: TObject);
+var
+  sts:TStringList;
 begin
 //  ss1.Save;
   ss1.SaveTxt;
+  sts:=TStringList.Create;
+  sts.Text:=ss1.TimeTable.AsJsonObject.AsJSon(True,False);
+  sts.SaveToFile('..\test.txt');
+  sts.Free;
 end;
 
 end.
