@@ -54,7 +54,10 @@ function TKabinetDlg.Execute(Kab:TKabinet):boolean;
 Var
  i:integer;
 begin
- if Assigned(FOnGetList) then FOnGetList(self,todKabinet,false,sts);
+ if Assigned(FOnGetList) then begin
+   FOnGetList(self,todKabinet,false,sts);
+   sts.Sort;
+ end;
  if Kab=nil then Begin
   Caption:='Создание нового кабинета';
   KabName.Text:='';

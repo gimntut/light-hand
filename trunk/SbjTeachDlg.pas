@@ -132,6 +132,8 @@ procedure TTeacherDlg.ComboBox1KeyUp(Sender: TObject; var Key: Word;
 var
   sc: word;
   n, x: integer;
+  sts: TStringList;
+  I: Integer;
 begin
   inherited;
   x := -1;
@@ -152,9 +154,13 @@ begin
       todInsert(todKabinet);
       n := ComboBox1.Items.Count;
       x := ComboBox1.ItemIndex;
+      sts := TStringList.Create;
       todGetList(todKabinet, false, ComboBox1.Items);
       if n <> ComboBox1.Items.Count then
-        x := ComboBox1.items.Count - 1;
+        for I := 0 to sts.Count - 1 do begin
+          x := I;
+          if sts[I]<>ComboBox1.Items[I] then break;
+        end;
     end;
     VK_F2:
     begin
@@ -186,10 +192,17 @@ begin
     FOnDelete(self, TypeOfData, Index);
 end;
 
-procedure TTeacherDlg.TodGetList(TypeOfData: TTypeOfData; short: boolean; Strings: tStrings);
+procedure TTeacherDlg.TodGetList(TypeOfData: TTypeOfData; short: boolean; Strings: TStrings);
+var
+  sts: TStringList;
 begin
-  if Assigned(FOnGetList) then
-    FOnGetList(self, TypeOfData, short, Strings);
+  if Assigned(FOnGetList) then begin
+    sts := TStringList.Create;
+    FOnGetList(self, TypeOfData, short, sts);
+    sts.Sort;
+    Strings.Assign(sts);
+    sts.Free;
+  end;
 end;
 
 procedure TTeacherDlg.TodInsert(TypeOfData: TTypeOfData);

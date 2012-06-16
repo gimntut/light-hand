@@ -240,7 +240,7 @@ begin
   // Обработка результа вызова
   if not result then
     Exit;
-  FSubject.Assign(ASubject);
+//  if ASubject<>nil then FSubject.Assign(ASubject);
   with FSubject do begin
     while TeacherCount > 0 do
       Delete(0);

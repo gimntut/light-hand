@@ -16,12 +16,12 @@ inherited TeacherDlg: TTeacherDlg
     Top = 235
     Width = 348
     TabOrder = 1
-    ExplicitTop = 219
-    ExplicitWidth = 320
+    ExplicitTop = 235
+    ExplicitWidth = 348
     inherited Panel2: TPanel
       Left = 97
       Top = 2
-      ExplicitLeft = 82
+      ExplicitLeft = 97
       ExplicitTop = 2
     end
   end
@@ -33,8 +33,6 @@ inherited TeacherDlg: TTeacherDlg
     Align = alClient
     BevelInner = bvLowered
     TabOrder = 0
-    ExplicitWidth = 320
-    ExplicitHeight = 158
     DesignSize = (
       348
       174)
@@ -60,7 +58,6 @@ inherited TeacherDlg: TTeacherDlg
       OnChange = le1Change
       OnKeyPress = le1KeyPress
       OnKeyUp = le1KeyUp
-      ExplicitWidth = 300
     end
     object le1: TLabeledEdit
       Left = 10
@@ -77,7 +74,6 @@ inherited TeacherDlg: TTeacherDlg
       OnChange = le1Change
       OnKeyPress = le1KeyPress
       OnKeyUp = le1KeyUp
-      ExplicitWidth = 300
     end
     object le3: TLabeledEdit
       Left = 10
@@ -94,7 +90,6 @@ inherited TeacherDlg: TTeacherDlg
       OnChange = le1Change
       OnKeyPress = le1KeyPress
       OnKeyUp = le1KeyUp
-      ExplicitWidth = 300
     end
     object ComboBox1: TComboBox
       Left = 10
@@ -109,7 +104,6 @@ inherited TeacherDlg: TTeacherDlg
       ParentCtl3D = False
       TabOrder = 3
       OnKeyUp = ComboBox1KeyUp
-      ExplicitWidth = 300
     end
   end
   object Panel5: TPanel
@@ -121,8 +115,6 @@ inherited TeacherDlg: TTeacherDlg
     BevelInner = bvLowered
     Color = 15138790
     TabOrder = 2
-    ExplicitTop = 158
-    ExplicitWidth = 320
     object Panel6: TPanel
       Left = 2
       Top = 2
@@ -133,7 +125,6 @@ inherited TeacherDlg: TTeacherDlg
       BorderWidth = 2
       ParentColor = True
       TabOrder = 0
-      ExplicitWidth = 316
       object Label2: TLabel
         Left = 2
         Top = 2
@@ -153,7 +144,7 @@ inherited TeacherDlg: TTeacherDlg
         ParentFont = False
         Transparent = True
         WordWrap = True
-        ExplicitWidth = 308
+        ExplicitWidth = 320
         ExplicitHeight = 52
       end
     end
