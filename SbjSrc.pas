@@ -911,8 +911,8 @@ end;
 function TSubjSource.StateOf(ASubject: TSubject; ALesson: Integer): TSubjState;
 var
   I: integer;
-  Sbj: TLesson;
-  Item: TRefItem;
+  Lesson: TLesson;
+//  Item: TRefItem;
   Ints: TIntegers;
 begin
  //todo 1 : StateOf - Подлежит изменению
@@ -925,18 +925,18 @@ begin
  // Список чисел
   Ints := TIntegers.Create;
  // Неопределён текущий столбец
-  Item := nil;
- // Определьть текущий столбец
+//  Item := nil;
+ // Определить текущий столбец
   case ColumnMode of
   // Если заголовки столбцов - классы,
   // то запомнить текущий класс в списке чисел
     cmKlass:
       if CurrentKlass <> nil then
         Ints.Add(CurrentKlass.ItemIndex);
-    cmKabinet:
-      Item := CurrentKabinet;
-    cmTeacher:
-      Item := CurrentTeacher;
+//    cmKabinet:
+//      Item := CurrentKabinet;
+//    cmTeacher:
+//      Item := CurrentTeacher;
   end;
  // Перебрать все классы
   for I := 0 to Ints.Count - 1 do begin
@@ -944,12 +944,12 @@ begin
   // текущего урока
 
   // 25.04.2012 old -> sbj := Klasses[ints[I]].LessAbs[ALesson];
-    sbj := TimeTable.ForKlasses[Ints[I],ALesson];
-    Ints.Objects[I] := sbj;
-    if sbj = nil then
+    Lesson := TimeTable.ForKlasses[Ints[I],ALesson];
+    Ints.Objects[I] := Lesson;
+    if Lesson = nil then
       Continue;
   // Удалить предмет из расписания
-    TimeTable.Delete(ALesson, sbj);
+    TimeTable.DeleteFromState(ALesson, Lesson);
   end;
  // Определить состояние одного из предметов основного списка
   Result := ASubject.State[ALesson];
@@ -957,8 +957,9 @@ begin
   for I := 0 to LessonCount - 1 do
   // Если для одного из уроков есть предмет,
   // то вернуть его в сетку расписания
-    if Ints.Objects[I] <> nil then
-      TimeTable.Add(ALesson, TLesson(Ints.Objects[I]));
+    Lesson := TLesson(Ints.Objects[I]);
+    if Lesson <> nil then
+      TimeTable.AddToState(ALesson, Lesson);
   Ints.Free;
 end;
 

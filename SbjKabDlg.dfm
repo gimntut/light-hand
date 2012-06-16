@@ -16,11 +16,11 @@ inherited KabinetDlg: TKabinetDlg
   inherited Panel1: TPanel
     Top = 141
     Width = 391
-    ExplicitTop = 127
-    ExplicitWidth = 396
+    ExplicitTop = 141
+    ExplicitWidth = 391
     inherited Panel2: TPanel
       Left = 117
-      ExplicitLeft = 120
+      ExplicitLeft = 117
     end
   end
   object Panel3: TPanel
@@ -31,8 +31,6 @@ inherited KabinetDlg: TKabinetDlg
     Align = alClient
     BevelInner = bvLowered
     TabOrder = 1
-    ExplicitWidth = 396
-    ExplicitHeight = 66
     DesignSize = (
       391
       80)
@@ -48,7 +46,6 @@ inherited KabinetDlg: TKabinetDlg
       EditLabel.Caption = #1053#1072#1079#1074#1072#1085#1080#1077' '#1082#1072#1073#1080#1085#1077#1090#1072
       ParentCtl3D = False
       TabOrder = 0
-      ExplicitWidth = 313
     end
     object KabNum: TLabeledEdit
       Left = 324
@@ -65,7 +62,6 @@ inherited KabinetDlg: TKabinetDlg
       OnChange = KabNumChange
       OnKeyPress = KabNumKeyPress
       OnKeyUp = KabNumKeyUp
-      ExplicitLeft = 329
     end
     object chkView: TCheckBox
       Left = 9
@@ -89,8 +85,6 @@ inherited KabinetDlg: TKabinetDlg
     BevelInner = bvLowered
     Color = 15138790
     TabOrder = 2
-    ExplicitTop = 66
-    ExplicitWidth = 396
     object Panel6: TPanel
       Left = 2
       Top = 2
@@ -101,7 +95,6 @@ inherited KabinetDlg: TKabinetDlg
       BorderWidth = 2
       ParentColor = True
       TabOrder = 0
-      ExplicitWidth = 392
       object lbHelp: TLabel
         Left = 2
         Top = 2

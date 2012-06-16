@@ -142,7 +142,7 @@ begin
   ss1.SaveTxt;
   sts:=TStringList.Create;
   sts.Text:=ss1.TimeTable.AsJsonObject.AsJSon(True,False);
-  sts.SaveToFile('..\test.txt');
+  sts.SaveToFile('..\test.json');
   sts.Free;
 end;
 
