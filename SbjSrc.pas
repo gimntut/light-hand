@@ -869,6 +869,7 @@ var
   rs: TResourceStream;
 begin
   inherited Create(AOwner);
+  FCurrentLesson := 1;
   Subjs := TSubjects.Create;
   rs := TResourceStream.Create(HInstance, 'Subjects', RT_RCDATA);
   Subjs.SubjectNames.LoadFromStream(rs);
