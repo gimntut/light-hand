@@ -516,6 +516,7 @@ begin
   if Value <> nil then begin
     Value.FreeNotification(self);
     FSubjSource.SubjLinks.Add(SubjLink);
+    SelectCell(Col,Row);
     OutTimeTable;
   end;
 end;
