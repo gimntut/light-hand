@@ -29,6 +29,7 @@ type
   TKabinets = class ;
   TKlasses = class ;
   TPlainSubjects = class ;
+  TLessons = class ;
   TSubject = class ;
   TSubjects = class ;
   TTeachers = class ;
@@ -93,12 +94,12 @@ type
     FLock: TCross;
     FName: string;
     FSubjects: TPlainSubjects;
-    FLessons: TPlainSubjects;
+    FLessons: TLessons;
     function GetAvailableSubjects(LessonIndex: Integer): TSubjects;
     function GetCross: TCross; virtual;
   ////////////////////// Новые методы //////////////////////
     function GetSubjects: TPlainSubjects;
-    function GetLessons: TPlainSubjects;
+    function GetLessons: TLessons;
   public
     constructor Create; override;
     destructor Destroy; override;
@@ -111,7 +112,7 @@ type
     property Lock: TCross read FLock write FLock;
     property Name: string read FName write FName;
     property Subjects: TPlainSubjects read GetSubjects;
-    property Lessons: TPlainSubjects read GetLessons;
+    property Lessons: TLessons read GetLessons;
   end;
  ////////////////////// x //////////////////////
  // TTimeTableX - Информация о связи с расписанием
@@ -149,11 +150,8 @@ type
   TKlass = class (TSimpleItem)
   private
     FKabinets: TKabinets;
-    FMaxSanPIN: Integer;
     FTeachers: TTeachers;
-    FWDSanPIN: array[0..WDCount - 1] of Integer;
     function GetWDSanPIN(WD: Integer): Real;
-    procedure FindMaxSanPIN;
   public
     constructor Create; override;
     destructor Destroy; override;
@@ -406,8 +404,18 @@ type
     property Item[Index: Integer]: TSubject read GetItem write SetItem; default;
   end;
  ////////////////////// x //////////////////////
- // TLessons - ***
+ // TPlainSubjects - простая коллекция предметов
   TLessons = class (TColl)
+    function GetItem(Index: Integer): TLesson;
+    procedure SetItem(Index: Integer; const Value: TLesson);
+  public
+    constructor Create(AutoIndex: boolean);
+    procedure Assign(Source: TPersistent); override;
+    property Item[Index: Integer]: TLesson read GetItem write SetItem; default;
+  end;
+ ////////////////////// x //////////////////////
+ // TLessons - ***
+  TTTLessons = class (TColl)
     function GetItem(Index: Integer): TLesson;
     procedure SetItem(Index: Integer; const Value: TLesson);
   private
@@ -438,14 +446,14 @@ type
   private
     FSubjects: TSubjects;
     Subjs: TSubs;
-    FLessons: array[0..LessCount-1] of TLessons;
+    FLessons: array[0..LessCount-1] of TTTLessons;
     function GetForKabinet(KabinetIndex, LessonIndex: Integer): TSubs;
     function GetForTeacher(TeacherIndex, LessonIndex: Integer): TSubs;
     function GetForKlasses(KlassIndex, LessonIndex: Integer): TLesson;
     procedure ClearSubjs;
     procedure SetSubjects(const Value: TSubjects);
     function GetKlasses: TKlasses;
-    function GetLessons(Index: Integer): TLessons;
+    function GetLessons(Index: Integer): TTTLessons;
     function GetAsJsonObject: ISuperObject;
     procedure SetAsJsonObject(const Value: ISuperObject);
   protected
@@ -470,7 +478,7 @@ type
     property ForKlasses[KlassIndex, LessonIndex: Integer]: TLesson read GetForKlasses;
     property ForTeacher[TeacherIndex, LessonIndex: Integer]: TSubs read GetForTeacher;
     property Subjects: TSubjects read FSubjects write SetSubjects;
-    property Lessons[Index:Integer]: TLessons read GetLessons;
+    property Lessons[Index:Integer]: TTTLessons read GetLessons;
   end;
  ////////////////////// x //////////////////////
  // TSubjects - информация о всех предметах
@@ -725,7 +733,7 @@ begin
   Result := FCross;
 end;
 
-function TSimpleItem.GetLessons: TPlainSubjects;
+function TSimpleItem.GetLessons: TLessons;
 begin
   Result := FLessons;
 end;
@@ -736,7 +744,7 @@ begin
   inherited;
   FName := '';
   FSubjects := TPlainSubjects.Create(false);
-  FLessons := TPlainSubjects.Create(false);
+  FLessons := TLessons.Create(false);
   FChecked := True;
   FLock := [];
   FCross := [];
@@ -821,21 +829,27 @@ end;
                    { TKlass }
 //////////////////////////////////////////////////
 function TKlass.GetWDSanPIN(WD: Integer): Real;
+var
+  I:Integer;
+  WDSanPIN:array[0..6] of Integer;
+  MaxSanPIN: Integer;
+  SanPIN: Integer;
+  WDI: Integer;
 begin
   Result := 0;
-  if FMaxSanPIN = 0 then
+  for I := 0 to 6 do
+    WDSanPIN[I] := 0; 
+  for I := 0 to Lessons.Count - 1 do begin
+    SanPIN := Lessons[I].SanPIN;
+    WDI := Lessons[I].LessonIndex div LessInDay;
+    WDSanPIN[WDI]:=WDSanPIN[WDI]+SanPIN;
+  end;
+  MaxSanPIN:=0;
+  for I := 0 to 6 do
+    if MaxSanPIN<WDSanPin[I] then MaxSanPIN:=WDSanPin[I];
+  if MaxSanPIN = 0 then
     Exit;
-  Result := FWDSanPIN[wd] / FMaxSanPIN;
-end;
-
-procedure TKlass.FindMaxSanPIN;
-var
-  I: Integer;
-begin
-  FMaxSanPIN := 0;
-  for I := 0 to WDCount - 1 do
-    if FMaxSanPIN < FWDSanPIN[I] then
-      FMaxSanPIN := FWDSanPIN[I];
+  Result := WDSanPIN[WD] / MaxSanPIN;
 end;
 
 {public}
@@ -1941,7 +1955,7 @@ begin
   Result := FSubjects.Klasses;
 end;
 
-function TTimeTable.GetLessons(Index: Integer): TLessons;
+function TTimeTable.GetLessons(Index: Integer): TTTLessons;
 begin
   Result:=nil;
   if OutSide(Index,LessCount) then Exit;
@@ -2016,7 +2030,7 @@ var
 begin
   SetLength(Subjs, 0);
   for I := 0 to LessCount - 1 do
-    FLessons[I] := TLessons.Create(self, I);
+    FLessons[I] := TTTLessons.Create(self, I);
 end;
 
 destructor TTimeTable.Destroy;
@@ -2979,7 +2993,7 @@ end;
 
 { TLessons }
 
-procedure TLessons.Assign(Source: TPersistent);
+procedure TTTLessons.Assign(Source: TPersistent);
 var
   Subs: TPlainSubjects;
   I: Integer;
@@ -2994,22 +3008,55 @@ begin
     inherited;
 end;
 
-procedure TLessons.ChangeLessonIndex(Sender: TObject; OldIndex: Integer);
+procedure TTTLessons.ChangeLessonIndex(Sender: TObject; OldIndex: Integer);
 begin
   { TODO -oГимаев Наиль -cВажно : Нужно добавить реализацию }
 end;
 
-constructor TLessons.Create(ATimeTable: TTimeTable; ALessonIndex: Integer);
+constructor TTTLessons.Create(ATimeTable: TTimeTable; ALessonIndex: Integer);
 begin
   inherited Create(True);
   FLessonIndex:=ALessonIndex;
 end;
 
-function TLessons.CreateLesson(Subject: TSubject): TLesson;
+function TTTLessons.CreateLesson(Subject: TSubject): TLesson;
 begin
   Result:=TLesson.Create(Subject,LessonIndex);
   Result.OnChangeLessonIndex:=ChangeLessonIndex;
   Add(Result);
+end;
+
+function TTTLessons.GetItem(Index: Integer): TLesson;
+begin
+  Result := TLesson(inherited GetItem(Index));
+end;
+
+
+procedure TTTLessons.SetItem(Index: Integer; const Value: TLesson);
+begin
+  inherited SetItem(Index, Value);
+end;
+
+{ TLessons }
+
+procedure TLessons.Assign(Source: TPersistent);
+var
+  Subs: TLessons;
+  I: Integer;
+begin
+  Clear(false);
+  if Source is TLessons then begin
+    Subs := TLessons(Source);
+    for I := 0 to Subs.Count - 1 do
+      Add(Subs[I]);
+  end
+  else
+    inherited;
+end;
+
+constructor TLessons.Create(AutoIndex: boolean);
+begin
+  inherited Create(AutoIndex);
 end;
 
 function TLessons.GetItem(Index: Integer): TLesson;
@@ -3017,10 +3064,16 @@ begin
   Result := TLesson(inherited GetItem(Index));
 end;
 
-
 procedure TLessons.SetItem(Index: Integer; const Value: TLesson);
+var
+  ind: Integer;
 begin
+  ind := -1;
+  if Value <> nil then
+    ind := Value.ItemIndex;
   inherited SetItem(Index, Value);
+  if Value <> nil then
+    Value.ItemIndex := ind;
 end;
 
 end.
